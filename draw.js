@@ -5,8 +5,8 @@ vignetteImage.src = './sprites/vignette.png';
 var towerImage = new Image();
 towerImage.src = './sprites/tower.png';
 
-let shadows = false; // Also enable fallingBullets in fysik.js
-let perspective = false;
+let shadows = true; // Also enable fallingBullets in fysik.js
+let perspective = true;
 
 let colorByShooterId = {};
 setInterval(() => {
@@ -14,14 +14,26 @@ setInterval(() => {
 }, 30000);
 
 let vignetteCanvas = null;
+let preRenderSurface = null;
 
-export default function draw(canvas, context, store, localStore, clientId) {
+export default function draw(finalCanvas, finalContext, store, localStore, clientId) {
+    if(!preRenderSurface){
+        preRenderSurface = document.createElement('canvas');
+        preRenderSurface.width = finalCanvas.width;
+        preRenderSurface.height = finalCanvas.height
+    }
+    let canvas = preRenderSurface;
+    let context = preRenderSurface.getContext('2d');
     context.clearRect(0, 0, canvas.width, canvas.height);
     let tilesHor = canvas.width/32;
     let tilesVert = canvas.height/32;
+    //context.mozImageSmoothingEnabled = false;
+    //context.webkitImageSmoothingEnabled = false;
+    //context.msImageSmoothingEnabled = false;
+    context.imageSmoothingEnabled = false;
     if (backgroundImage.complete) {
-        for(let x = 0;x < 32*tilesHor;x+=32){
-            for(let y = 0;y < 32*tilesVert;y+=32){
+        for(let x = -128;x < 32*tilesHor;x+=32){
+            for(let y = -128;y < 32*tilesVert;y+=32){
                 context.drawImage(backgroundImage, x, y, 32, 32);
             }
         }
@@ -30,7 +42,7 @@ export default function draw(canvas, context, store, localStore, clientId) {
         //context.fillRect(0, 0, canvas.width, canvas.height);
         //context.globalAlpha = 1;
     }
-    store.state.blood.animateAndDraw();
+    //store.state.blood.animateAndDraw();
 
     let players = Object.keys(store.state.playersById).map(key => store.state.playersById[key]);
     for (let player of players) {
@@ -77,10 +89,20 @@ export default function draw(canvas, context, store, localStore, clientId) {
         context.filter = "brightness(" + 1.0 + ") blur(" + 8 + "px)";
         context.globalCompositeOperation = "lighten";
         context.globalAlpha = 0.6;
-        context.drawImage(canvas, 0, 0);
+        //context.drawImage(canvas, 0, 0);
         context.filter = "none";
         context.globalCompositeOperation = "source-over";
     }
+
+    context.globalAlpha = 1;
+    let zoom = 1.5;
+    //context.drawImage(zoomCanvas, -players[0].x*zoom + canvas.width/2, -players[0].y*zoom + canvas.height/2, canvas.width*zoom, canvas.height*zoom);
+    let sx = players[0].x -(canvas.width/zoom)/2;
+    let sy = players[0].y -(canvas.height/zoom)/2;
+    //context.FillRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle="black";
+    finalContext.fillRect(0, 0, canvas.width, canvas.height);
+    finalContext.drawImage(preRenderSurface, sx,sy,canvas.width/zoom,canvas.height/zoom, 0, 0, canvas.width, canvas.height, );
 
     function drawPlayer(context, { x, y, color, moving, shooting }) {
         context.fillStyle = color;

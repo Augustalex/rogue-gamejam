@@ -3,7 +3,7 @@ let constants = {
     timeToShoot: .5,
     enemyTimeToShoot: 10,
     playerSize: 10,
-    fallingBullets: false,
+    fallingBullets: true,
     bulletGravity: .5,
 };
 
