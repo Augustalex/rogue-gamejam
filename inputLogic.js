@@ -1,3 +1,6 @@
+//TODO make public constant in a players class
+const runningSpeed = 2;
+
 export default function ({ keysDown, wasPressed, wasReleased, keysDown: actionKeysActive }, { store, clientId }) {
     if (wasPressed('run')) {
         actionKeysActive.add('run')
