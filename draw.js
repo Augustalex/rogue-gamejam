@@ -1,5 +1,5 @@
 var backgroundImage = new Image();
-backgroundImage.src = './sprites/back.png';
+backgroundImage.src = './sprites/tile_brick.png';
 var vignetteImage = new Image();
 vignetteImage.src = './sprites/vignette.png';
 var towerImage = new Image();
@@ -17,13 +17,18 @@ let vignetteCanvas = null;
 
 export default function draw(canvas, context, store, localStore, clientId) {
     context.clearRect(0, 0, canvas.width, canvas.height);
+    let tilesHor = canvas.width/32;
+    let tilesVert = canvas.height/32;
     if (backgroundImage.complete) {
-        context.globalAlpha = 1;
-        context.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
-        context.globalAlpha = 0.5;
-        context.fillStyle = "black";
-        context.fillRect(0, 0, canvas.width, canvas.height);
-        context.globalAlpha = 1;
+        for(let x = 0;x < 32*tilesHor;x+=32){
+            for(let y = 0;y < 32*tilesVert;y+=32){
+                context.drawImage(backgroundImage, x, y, 32, 32);
+            }
+        }
+        //context.globalAlpha = 0.5;
+        //context.fillStyle = "black";
+        //context.fillRect(0, 0, canvas.width, canvas.height);
+        //context.globalAlpha = 1;
     }
     store.state.blood.animateAndDraw();
 
@@ -52,7 +57,7 @@ export default function draw(canvas, context, store, localStore, clientId) {
         vignetteContext.drawImage(vignetteImage, 0, 0, vignetteCanvas.width, vignetteCanvas.height);
         vignetteContext.globalCompositeOperation = 'source-in';
         vignetteContext.fillStyle = `rgb(${255 * ((100 - playerHealth) / 100)},0,0)`;
-        vignetteContext.fillRect(0, 0, canvas.width, canvas.height);
+        //vignetteContext.fillRect(0, 0, canvas.width, canvas.height);
         context.drawImage(vignetteCanvas, 0, 0, canvas.width, canvas.height);
         context.globalAlpha = 1;
     }
