@@ -6,6 +6,7 @@ import inputController from './inputController.js';
 import inputLogic from './inputLogic.js';
 import fysik from './fysik.js';
 import draw from './draw.js';
+import AudioEngine from './audio/AudioEngine.js';
 
 export default function () {
     let socket = io.connect('http://127.0.0.1:3032');
@@ -17,11 +18,16 @@ export default function () {
     const clientId = `${rand255()}${rand255()}`;
     console.log('clientId: ', clientId);
 
+    let audioEngine = AudioEngine();
+    audioEngine.play('background-0');
+
     const createOwnPlayer = () => {
         return {
             id: clientId,
-            x: rand255(),
-            y: rand255(),
+            position: {
+                x: rand255(),
+                y: rand255(),
+            },
             color,
             speed: 20,
             shooting: {
@@ -53,13 +59,13 @@ export default function () {
                     if (!state.playersById[id]) {
                         throw new Error('Player for id does not exist!');
                     }
-                    state.playersById[id].x = x;
-                    state.playersById[id].y = y
+                    state.playersById[id].position.x = x;
+                    state.playersById[id].position.y = y
                 },
                 SET_PLAYER_POSITION({ state }, { id, x, y }) {
                     if (state.playersById[id]) {
-                        state.playersById[id].x = x;
-                        state.playersById[id].y = y
+                        state.playersById[id].position.x = x;
+                        state.playersById[id].position.y = y
                     }
                 },
                 SET_PLAYER_MOVING({ state }, { id, moving }) {
@@ -189,8 +195,8 @@ export default function () {
                     let newDirectionX = Math.cos(newDirectionRad);
                     let newDirectionY = Math.sin(newDirectionRad);
                     let shootDir = Math.atan2(player.shooting.direction.y, player.shooting.direction.x);
-                    let gunPosX = player.x + Math.cos(shootDir + Math.PI / 4) * 9;
-                    let gunPosY = player.y + Math.sin(shootDir + Math.PI / 4) * 9;
+                    let gunPosX = player.position.x + Math.cos(shootDir + Math.PI / 4) * 9;
+                    let gunPosY = player.position.y + Math.sin(shootDir + Math.PI / 4) * 9;
 
                     let bullet = {
                         x: gunPosX,
@@ -273,6 +279,7 @@ export default function () {
         // input(store, clientId);
         fysik(localStore, store, delta);
         draw(canvas, context, store, localStore, clientId);
+
         gc();
         if (!respawning && store.state.localPlayerDead) {
             respawning = true;
@@ -283,6 +290,7 @@ export default function () {
                 respawning = false
             }, 3000);
         }
+
         requestAnimationFrame(loop)
     };
     loop();

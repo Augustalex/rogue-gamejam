@@ -107,8 +107,8 @@ export default function ({ keysDown, wasPressed, wasReleased, keysDown: actionKe
         });
         store.commit('SET_PLAYER_POSITION', {
             id: clientId,
-            x: player.x,
-            y: player.y
+            x: player.position.x,
+            y: player.position.y
         })
     }
 

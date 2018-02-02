@@ -101,8 +101,8 @@ function Enemy({ localStore, store }) {
 function Player({ localStore, store, playerId }) {
     let state = store.state.playersById[playerId];
 
-    let lastPosition = { x: state.x, y: state.y };
-    let currentPosition = { x: state.x, y: state.y };
+    let lastPosition = { x: state.position.x, y: state.position.y };
+    let currentPosition = { x: state.position.x, y: state.position.y };
 
     return {
         lastPosition,
@@ -112,8 +112,8 @@ function Player({ localStore, store, playerId }) {
         height: 12,
         fysik(delta) {
             let player = store.state.playersById[playerId];
-            let x = player.x;
-            let y = player.y;
+            let x = player.position.x;
+            let y = player.position.y;
             lastPosition.x = x;
             lastPosition.y = y;
 

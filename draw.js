@@ -17,7 +17,7 @@ let vignetteCanvas = null;
 let preRenderSurface = null;
 
 export default function draw(finalCanvas, finalContext, store, localStore, clientId) {
-    if(!preRenderSurface){
+    if (!preRenderSurface) {
         preRenderSurface = document.createElement('canvas');
         preRenderSurface.width = finalCanvas.width;
         preRenderSurface.height = finalCanvas.height
@@ -25,15 +25,15 @@ export default function draw(finalCanvas, finalContext, store, localStore, clien
     let canvas = preRenderSurface;
     let context = preRenderSurface.getContext('2d');
     context.clearRect(0, 0, canvas.width, canvas.height);
-    let tilesHor = canvas.width/32;
-    let tilesVert = canvas.height/32;
+    let tilesHor = canvas.width / 32;
+    let tilesVert = canvas.height / 32;
     //context.mozImageSmoothingEnabled = false;
     //context.webkitImageSmoothingEnabled = false;
     //context.msImageSmoothingEnabled = false;
     context.imageSmoothingEnabled = false;
     if (backgroundImage.complete) {
-        for(let x = -128;x < 32*tilesHor;x+=32){
-            for(let y = -128;y < 32*tilesVert;y+=32){
+        for (let x = -128; x < 32 * tilesHor; x += 32) {
+            for (let y = -128; y < 32 * tilesVert; y += 32) {
                 context.drawImage(backgroundImage, x, y, 32, 32);
             }
         }
@@ -97,14 +97,14 @@ export default function draw(finalCanvas, finalContext, store, localStore, clien
     context.globalAlpha = 1;
     let zoom = 1.5;
     //context.drawImage(zoomCanvas, -players[0].x*zoom + canvas.width/2, -players[0].y*zoom + canvas.height/2, canvas.width*zoom, canvas.height*zoom);
-    let sx = players[0].x -(canvas.width/zoom)/2;
-    let sy = players[0].y -(canvas.height/zoom)/2;
+    let sx = players[0].position.x - (canvas.width / zoom) / 2;
+    let sy = players[0].position.y - (canvas.height / zoom) / 2;
     //context.FillRect(0, 0, canvas.width, canvas.height);
-    context.fillStyle="black";
+    context.fillStyle = "black";
     finalContext.fillRect(0, 0, canvas.width, canvas.height);
-    finalContext.drawImage(preRenderSurface, sx,sy,canvas.width/zoom,canvas.height/zoom, 0, 0, canvas.width, canvas.height, );
+    finalContext.drawImage(preRenderSurface, sx, sy, canvas.width / zoom, canvas.height / zoom, 0, 0, canvas.width, canvas.height);
 
-    function drawPlayer(context, { x, y, color, moving, shooting }) {
+    function drawPlayer(context, { position: { x, y }, color, moving, shooting }) {
         context.fillStyle = color;
         let aimVector = moving;
         if (shooting.direction.x || shooting.direction.y) {
