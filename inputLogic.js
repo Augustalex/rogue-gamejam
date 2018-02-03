@@ -37,6 +37,17 @@ export default function ({ keysDown, wasPressed, wasReleased, keysDown: actionKe
         actionKeysActive.delete('run')
     }
 
+    if (wasPressed('teleport')) {
+        store.commit('START_PLAYER_TELEPORTING', {
+            id: clientId
+        });
+    }
+    if (wasReleased('teleport')) {
+        store.commit('FINISH_PLAYER_TELEPORTING', {
+            id: clientId
+        });
+    }
+
     if (movingX !== player.moving.x || movingY !== player.moving.y || (runningChanged && (player.moving.x > 0 || player.moving.y > 0))) {
         let running = actionKeysActive.has('run');
 

@@ -22,7 +22,8 @@ const keymap = {
     shootDown: ['arrowdown', rightStickDown],
     shootLeft: ['arrowleft', rightStickLeft],
     shootRight: ['arrowright', rightStickRight],
-    run: ['shift', buttonA]
+    run: ['shift', buttonA],
+    teleport: [' '],
 };
 
 let actionKeysActive = new Set();
@@ -70,7 +71,7 @@ function readGamepadState() {
 
     for (let i = 0; i < gamepadOne.buttons.length; i++) {
         if (gamepadOne.buttons[i].pressed) {
-            alert(`BUTTON ${i} PRESSED!`);
+            newKeysDown.add(' ')
         }
     }
 
@@ -102,7 +103,6 @@ function readGamepadState() {
             newKeysDown.delete(down)
         }
     };
-
     stick(rightStick, rightStickUp, rightStickDown, rightStickLeft, rightStickRight);
     stick(leftStick, leftStickUp, leftStickDown, leftStickLeft, leftStickRight)
 }

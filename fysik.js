@@ -1,7 +1,7 @@
 let constants = {
     bulletSpeed: 50,
     timeToShoot: .5,
-    enemyTimeToShoot: 10,
+    enemyTimeToShoot: 20,
     playerSize: 10,
     fallingBullets: true,
     bulletGravity: .5,
@@ -110,6 +110,11 @@ function Player({ localStore, store, playerId }) {
         id: playerId,
         width: 12,
         height: 12,
+        teleporting: false,
+        teleportCursor: {
+            x: 0,
+            y: 0
+        },
         fysik(delta) {
             let player = store.state.playersById[playerId];
             let x = player.position.x;
@@ -134,24 +139,41 @@ function Player({ localStore, store, playerId }) {
             // }
 
             if (player.shooting.direction.x || player.shooting.direction.y) {
-                if (!player.shooting.timeToShoot) {
-                    player.shooting.timeToShoot = constants.timeToShoot
+                if (player.teleporting) {
+                    let dist = player.teleportCursor.x * player.teleportCursor.x + player.teleportCursor.y * player.teleportCursor.y;
+                    dist = Math.min(Math.max(Math.sqrt(dist) / 10, 1), 2);
+                    player.teleportCursor.x += player.shooting.direction.x * 10 / dist;
+                    player.teleportCursor.y += player.shooting.direction.y * 10 / dist;
                 }
-                let newTimeToShoot = player.shooting.timeToShoot - delta;
-                if (newTimeToShoot <= 0) {
-                    let overFlow = -newTimeToShoot;
-                    newTimeToShoot = constants.timeToShoot - overFlow;
-                    localStore.dispatch('firePlayerWeapon', {
-                        id: playerId,
-                        direction: player.shooting.direction,
-                    });
-                }
-                localStore.commit('MERGE_PLAYER_SHOOTING', {
-                    id: playerId,
-                    shooting: {
-                        timeToShoot: newTimeToShoot
+                else {
+                    if (!player.shooting.timeToShoot) {
+                        player.shooting.timeToShoot = constants.timeToShoot
                     }
-                })
+                    let newTimeToShoot = player.shooting.timeToShoot - delta;
+                    if (newTimeToShoot <= 0) {
+                        let overFlow = -newTimeToShoot;
+                        newTimeToShoot = constants.timeToShoot - overFlow;
+                        localStore.dispatch('firePlayerWeapon', {
+                            id: playerId,
+                            direction: player.shooting.direction,
+                        });
+                    }
+                    localStore.commit('MERGE_PLAYER_SHOOTING', {
+                        id: playerId,
+                        shooting: {
+                            timeToShoot: newTimeToShoot
+                        }
+                    })
+                }
+            }
+
+            if (player.teleporting) {
+                if (Math.abs(player.teleportCursor.x) > 10) {
+                    player.teleportCursor.x /= 1.01;
+                }
+                if (Math.abs(player.teleportCursor.y) > 10) {
+                    player.teleportCursor.y /= 1.01;
+                }
             }
         }
     }

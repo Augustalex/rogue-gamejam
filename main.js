@@ -101,6 +101,20 @@ export default function () {
                     state.bullets[id].y = y;
                     state.bullets[id].height = height
                 },
+                START_PLAYER_TELEPORTING({ state }, { id}) {
+                    let player = state.playersById[id];
+                    player.teleporting = true;
+                    player.teleportCursor = {
+                        x : 0,
+                        y : 0
+                    };
+                },
+                FINISH_PLAYER_TELEPORTING({ state, commit }, { id}) {
+                    let player = state.playersById[id];
+                    player.teleporting = false;
+                    player.position.x = player.position.x + player.teleportCursor.x;
+                    player.position.y = player.position.y + player.teleportCursor.y;
+                },
                 REMOVE_PLAYER({ state }, playerId) {
                     if (state.playersById[playerId]) {
                         state.removeRequests.push({
@@ -221,24 +235,29 @@ export default function () {
                     }, Math.round(Math.random() * 200) + 1000);
                 },
                 fireEnemyWeapon({ state, commit }) {
-                    let shots = 3 + Math.round(Math.random() * 2);
-                    for (let directionRad = 0; directionRad < Math.PI * 2; directionRad += Math.PI * 2 / shots) {
+                    let shadowDimension = Math.random() > 0.5;
+                    let shots = 25 + Math.round(Math.random() * 2);
+                    let randomPlayerId = Object.keys(state.playersById)[0];
+                    let player = state.playersById[randomPlayerId];
+                    let targetDir = Math.atan2(player.position.y - 400, player.position.x - 400);
+                    for (let directionRad = targetDir - Math.PI /40; directionRad < targetDir + Math.PI /40; directionRad += (Math.PI /10) / shots) {
 
                         let bulletId = genId();
                         let newDirectionX = Math.cos(directionRad);
                         let newDirectionY = Math.sin(directionRad);
 
                         let bullet = {
-                            x: 400,
-                            y: 400,
+                            x: 400 + Math.random() * 1,
+                            y: 400 + Math.random() * 1,
                             id: bulletId,
                             shooterId: null,
                             direction: {
-                                x: newDirectionX / 3,
-                                y: newDirectionY / 3
+                                x: newDirectionX * (0.5 + Math.random() * 0.2),
+                                y: newDirectionY * (0.5 + Math.random() * 0.2)
                             },
                             isEnemy: true,
-                            height: 22
+                            height: 22,
+                            shadowDimension: shadowDimension
                         };
                         commit('ADD_BULLET', bullet);
 

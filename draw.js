@@ -109,7 +109,21 @@ export default function draw(finalCanvas, finalContext, store, localStore, clien
         applyBloom(finalContext);
     }
 
-    function drawPlayer(context, { position: { x, y }, color, moving, shooting }) {
+    function drawPlayer(context, {
+        position: { x, y },
+        color,
+        moving,
+        shooting,
+        teleporting,
+        teleportCursor
+    }) {
+        if (teleporting) {
+            context.beginPath();
+            context.arc(x + teleportCursor.x, y + teleportCursor.y, 8, 0, 2 * Math.PI, false);
+            context.lineWidth = 2;
+            context.strokeStyle = 'red';
+            context.stroke();
+        }
         context.fillStyle = color;
         let aimVector = moving;
         if (shooting.direction.x || shooting.direction.y) {
@@ -152,6 +166,7 @@ export default function draw(finalCanvas, finalContext, store, localStore, clien
         let gunPosX = x + Math.cos(dir + Math.PI / 4) * 9;
         let gunPosY = y + Math.sin(dir + Math.PI / 4) * 9;
         fillRectRot(gunPosX, gunPosY, 8, 3, dir)
+
     }
 
     function drawBullet(context, bullet, color) {
