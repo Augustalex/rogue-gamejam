@@ -37,6 +37,12 @@ export default function ({ keysDown, wasPressed, wasReleased, keysDown: actionKe
         actionKeysActive.delete('run')
     }
 
+    if (wasPressed('changeDimension')) {
+        store.commit('CHANGE_DIMENSION', {
+            id: clientId
+        });
+    }
+
     if (wasPressed('teleport')) {
         store.commit('START_PLAYER_TELEPORTING', {
             id: clientId

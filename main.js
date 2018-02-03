@@ -60,7 +60,8 @@ export default function () {
                 bullets: [],
                 bulletsByShooterId: {},
                 removeRequests: [],
-                blood: null
+                blood: null,
+                presentDimension: false
             },
             getters: {},
             mutations: {
@@ -131,6 +132,9 @@ export default function () {
                         x: 0,
                         y: 0
                     };
+                },
+                CHANGE_DIMENSION({ state }, { id }) {
+                    state.presentDimension = !state.presentDimension;
                 },
                 FINISH_PLAYER_TELEPORTING({ state, commit }, { id }) {
                     let player = state.playersById[id];

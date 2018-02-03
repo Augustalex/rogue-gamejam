@@ -5,11 +5,12 @@ export default {
     async loadResources() {
         this.character = await loadImageAsync('./sprites/character.png');
         this.boss = await loadImageAsync('./sprites/boss.png');
-        this.bossPast = await loadBossPastFrames('./sprites/boss_Past.png');
+        this.bossPast = await loadBossFrames('./sprites/boss_Past.png');
+        this.bossPresent = await loadBossFrames('./sprites/boss_Present.png');
     }
 }
 
-async function loadBossPastFrames(path) {
+async function loadBossFrames(path) {
     let bossSheet = await loadImageAsync(path);
     let frames = [];
     for (let i = 0; i < 24; i++) {

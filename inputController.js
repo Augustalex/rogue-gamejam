@@ -23,6 +23,7 @@ const keymap = {
     shootLeft: ['arrowleft', rightStickLeft],
     shootRight: ['arrowright', rightStickRight],
     run: ['shift', buttonA],
+    changeDimension: ['q'],
     teleport: [' '],
 };
 

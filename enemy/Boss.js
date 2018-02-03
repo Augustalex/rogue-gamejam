@@ -49,13 +49,16 @@ function Boss(storeDependencies, state) {
             }
             if (Sprites.boss.complete) {
                 let scale = 2;
-
                 state.currentFrame+=0.5;
                 if(state.currentFrame > 23.5){
                     state.currentFrame = 0;
                 }
                 let frame = Math.floor(state.currentFrame);
-                let subImage = Sprites.bossPast[frame];
+                let sprite = Sprites.bossPast;
+                if(store.state.presentDimension){
+                    sprite = Sprites.bossPresent;
+                }
+                let subImage = sprite[frame];
                 context.drawImage(subImage, state.position.x - Sprites.boss.width * scale / 2, state.position.y - Sprites.boss.height * scale, Sprites.boss.width * scale, Sprites.boss.height * scale);
             }
             for (let bullet of inFrontOffBoss) {
