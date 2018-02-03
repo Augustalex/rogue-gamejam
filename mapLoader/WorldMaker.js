@@ -3,12 +3,12 @@ import mapTools from './mapTools.js';
 import loadSprite from './loadSprite.js';
 import rasterizeLayer from './rasterizeLayer.js';
 
-export default async function WorldMaker(worldData) {
+export default function WorldMaker(worldData,) {
     let { matrixPath, spritePaths, colorToTileId, TileGetters } = worldData;
-    let matrix = await mapTools.loadToMatrix(matrixPath);
 
     return {
         async make() {
+            let matrix = await mapTools.loadToMatrix(matrixPath);
             let sprites = await loadSprites(spritePaths);
             let tileGetters = TileGetters(sprites);
             let layer = await createLayer(colorToTileId, tileGetters, matrix);

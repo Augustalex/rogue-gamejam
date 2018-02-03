@@ -3,6 +3,7 @@ import mapLoader from './mapLoader.js'
 export default async function mapInspector(src, tileMap) {
     let imageCanvas = await mapLoader(src);
     let imageContext = imageCanvas.getContext('2d');
+    imageContext.imageSmoothingEnabled = false;
     document.body.appendChild(imageCanvas);
 
     let lastData = [-1, -1, -1, -1];

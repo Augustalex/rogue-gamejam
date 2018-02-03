@@ -1,11 +1,12 @@
 export default {
-    matrixPath: './mapLoader/worldTest.png',
+    matrixPath: './mapLoader/worldTest02.bmp',
     spritePaths: {
+        'grass': './sprites/grass_Past001.png',
         'bricks': './sprites/sprite_Tile_Edge.png'
     },
     colorToTileId: {
-        '182,15,15,255': 'brick1',
-        '0,0,0,255': 'brick2'
+        '115,132,140,255': 'brick',
+        '25,123,49,255': 'grass'
     },
     TileGetters: (sprites) => ({
         brick() {
@@ -19,6 +20,9 @@ export default {
         brick2() {
             let bricks = sprites.bricks.tiles;
             return bricks[5];
+        },
+        grass() {
+            return sprites.grass.tiles[0];
         }
     })
 }

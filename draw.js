@@ -1,5 +1,7 @@
 import World from './world.js';
 import Sprites from './sprites.js';
+import worldData from './mapLoader/worldData2.js';
+import WorldMaker from './mapLoader/WorldMaker.js';
 
 var backgroundImage = new Image();
 backgroundImage.src = './sprites/sprite_Tile_Edge.png';
@@ -21,73 +23,34 @@ setInterval(() => {
 
 let vignetteCanvas = null;
 let preRenderSurface = null;
-let tileCanvases = [];
-let backgroundCanvas = null;
-let initial = true;
 let first = true;
+let worldMaker = WorldMaker(worldData);
+let worldCanvas = null;
 
 export default async function draw(finalCanvas, finalContext, store, localStore, clientId) {
+    if (first) {
+        first = false;
+        heavyBrickLefts = await loadHeavyBricks('Left');
+        heavyBrickRights = await loadHeavyBricks('Right');
+        await Sprites.loadResources();
+        worldCanvas = await worldMaker.make();
+    }
     if (!preRenderSurface) {
         preRenderSurface = document.createElement('canvas');
-        preRenderSurface.width = finalCanvas.width;
-        preRenderSurface.height = finalCanvas.height;
+        preRenderSurface.width = worldCanvas.width;
+        preRenderSurface.height = worldCanvas.height;
     }
     if (vignetteImage.complete && !vignetteCanvas) {
         vignetteCanvas = document.createElement('canvas');
         vignetteCanvas.width = finalCanvas.width;
         vignetteCanvas.height = finalCanvas.height
     }
-    if (first) {
-        first = false;
-        heavyBrickLefts = await loadHeavyBricks('Left');
-        heavyBrickRights = await loadHeavyBricks('Right');
-        await Sprites.loadResources();
-    }
+
     let canvas = preRenderSurface;
     let context = preRenderSurface.getContext('2d');
     context.clearRect(0, 0, canvas.width, canvas.height);
-    let tilesHor = World.width / 32;
-    let tilesVert = World.height / 32;
     context.imageSmoothingEnabled = false;
-    if (backgroundImage.complete) {
-        if (initial) {
-            for (let x = 0; x < 5; x++) {
-                for (let y = 1; y < 5; y++) {
-                    let canvas = document.createElement('canvas');
-                    canvas.width = 32;
-                    canvas.height = 32;
-                    let context = canvas.getContext('2d');
-                    context.imageSmoothingEnabled = false;
-                    context.drawImage(backgroundImage, x * 16, y * 16, 16, 16, 0, 0, 32, 32);
-                    tileCanvases.push(canvas);
-                }
-            }
 
-            if (!backgroundCanvas) {
-                backgroundCanvas = document.createElement('canvas');
-                backgroundCanvas.width = finalCanvas.width;
-                backgroundCanvas.height = finalCanvas.height;
-                let context = backgroundCanvas.getContext('2d');
-                context.imageSmoothingEnabled = false;
-                for (let x = -128; x < 32 * tilesHor; x += 32) {
-                    for (let y = -128; y < 32 * tilesVert; y += 32) {
-                        let i = parseInt(Math.random() * 20);
-                        context.drawImage(tileCanvases[i], x, y, 32, 32);
-                    }
-                }
-                for (let brick of World.bricks) {
-                    context.drawImage(heavyBrickLefts[parseInt(Math.random() * 4)], brick.x, brick.y - 2, 32, 32);
-                    context.drawImage(heavyBrickRights[parseInt(Math.random() * 4)], brick.x + 32, brick.y - 2, 32, 32);
-                }
-            }
-            initial = false;
-        }
-        context.drawImage(backgroundCanvas, 0, 0, backgroundCanvas.width, backgroundCanvas.height);
-        //context.globalAlpha = 0.5;
-        //context.fillStyle = "black";
-        //context.fillRect(0, 0, canvas.width, canvas.height);
-        //context.globalAlpha = 1;
-    }
     store.state.blood.animateAndDraw(context);
 
     let players = Object.keys(store.state.playersById).map(key => store.state.playersById[key]);
@@ -108,15 +71,23 @@ export default async function draw(finalCanvas, finalContext, store, localStore,
     }
 
     context.globalAlpha = 1;
-    let zoom = 2;
+    let zoom = 1;
     //context.drawImage(zoomCanvas, -players[0].x*zoom + canvas.width/2, -players[0].y*zoom + canvas.height/2, canvas.width*zoom, canvas.height*zoom);
-    let sx = Math.round(players[0].position.x - (canvas.width / zoom) / 2);
-    let sy = Math.round(players[0].position.y - (canvas.height / zoom) / 2);
+    let sx = Math.round(players[0].position.x - (finalCanvas.width / zoom) / 2);
+    let sy = Math.round(players[0].position.y - (finalCanvas.height / zoom) / 2);
     //context.FillRect(0, 0, canvas.width, canvas.height);
+
+    //Final draw to the visible canvas (the camera)
     finalContext.fillStyle = "black";
     finalContext.imageSmoothingEnabled = false;
-    finalContext.fillRect(0, 0, canvas.width, canvas.height);
-    finalContext.drawImage(preRenderSurface, sx, sy, canvas.width / zoom, canvas.height / zoom, 0, 0, canvas.width, canvas.height);
+    finalContext.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+
+    let wsx = Math.round(players[0].position.x - (finalCanvas.width / zoom) / 2);
+    let wsy = Math.round(players[0].position.y - (finalCanvas.height / zoom) / 2);
+    let sw = finalCanvas.width / zoom;
+    let sh = finalCanvas.height / zoom;
+    finalContext.drawImage(worldCanvas, wsx, wsy, sw, sh, 0, 0, finalCanvas.width, finalCanvas.height);
+    finalContext.drawImage(preRenderSurface, sx, sy, finalCanvas.width / zoom, finalCanvas.height / zoom, 0, 0, finalCanvas.width, finalCanvas.height);
 
     if (vignetteCanvas && !store.state.localPlayerDead) {
         applyVignette(store, clientId, finalCanvas, finalContext);
@@ -153,13 +124,13 @@ export default async function draw(finalCanvas, finalContext, store, localStore,
         if (shadows) {
             context.globalAlpha = 0.5;
             context.fillStyle = 'black';
-            drawCircle(x, y , 10)
+            drawCircle(x, y, 10)
             context.filter = "none";
         }
         context.globalAlpha = 1;
         let scale = 2;
         context.imageSmoothingEnabled = false;
-        context.drawImage(Sprites.character, x - Sprites.character.width * scale / 2, y- Sprites.character.height * scale, Sprites.character.width * scale, Sprites.character.height * scale);
+        context.drawImage(Sprites.character, x - Sprites.character.width * scale / 2, y - Sprites.character.height * scale, Sprites.character.width * scale, Sprites.character.height * scale);
     }
 
     function drawBullet(context, bullet, color) {
@@ -208,7 +179,7 @@ export default async function draw(finalCanvas, finalContext, store, localStore,
         context.restore()
     }
 
-    function drawCircle(x, y,radius) {
+    function drawCircle(x, y, radius) {
         context.arc(x, y, radius, 0, 2 * Math.PI);
         context.fill();
     }
