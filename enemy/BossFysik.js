@@ -15,8 +15,8 @@ export default function (storeDependencies, entityState) {
     let step = 0;
     let pattern = [
         { x: 200, y: 200 },
-        { x: 200, y: 500 },
-        { x: 800, y: 500 },
+        { x: 200, y: 800 },
+        { x: 800, y: 800 },
         { x: 800, y: 200 }
     ];
     const getNextTargetLocation = () => {
@@ -87,7 +87,5 @@ export default function (storeDependencies, entityState) {
         }
 
         localStore.commit('SET_ENTITY_POS', { id: entityState.id, x, y });
-        // entity.setPosition(x, y);
-        // localStore.commit('SET_ENTITY_POS', { id: entity.id, x, y });
     }
 }

@@ -7,7 +7,7 @@ const { genId, rand255, rHue, rColor } = utils;
 export default function (storeDependencies, state) {
     let { store, localStore } = storeDependencies;
 
-    state.speed = 50;
+    state.speed = 20;
 
     let {
         id,

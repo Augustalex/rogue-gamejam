@@ -77,7 +77,7 @@ export default function fysik(localStore, store, delta) {
                 localStore.commit('REMOVE_BULLET', bulletId);
                 store.dispatch('playerShot', {
                     id: collidable.id,
-                    damage: 5
+                    damage: 80
                 })
             }
         }
@@ -113,7 +113,7 @@ function Player({ localStore, store, playerId }) {
             lastPosition.y = y;
 
             let speed = player.speed;
-            if(shooting){
+            if (shooting) {
                 speed /= 2;
             }
 
