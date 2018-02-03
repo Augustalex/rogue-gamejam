@@ -7,7 +7,7 @@ export default function (storeDependencies, enemy) {
     return (delta) => {
         lastTime += delta;
         if (lastTime > enemyTimeToShoot) {
-            storeDependencies.localStore.dispatch('fireWeapon', {
+            storeDependencies.localStore.dispatch('fireEnemyWeapon', {
                 id: enemy.id,
                 isEnemy: true,
             });

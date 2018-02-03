@@ -1,7 +1,9 @@
 export default {
     character: null,
+    boss: null,
     async loadResources(){
         this.character = await loadImageAsync('./sprites/character.png');
+        this.boss = await loadImageAsync('./sprites/boss.png');
     }
 }
 

@@ -1,6 +1,7 @@
 import options from '../options.js'
 import utils from '../utils.js';
 import BossFysik from './BossFysik.js';
+import Sprites from '../sprites.js';
 
 const { genId, rand255, rHue, rColor } = utils;
 
@@ -44,8 +45,9 @@ export default function (storeDependencies, state) {
                 drawBullet(context, store.state.bulletsByShooterId[id][bulletId], color)
             }
 
-            if (towerImage.complete) {
-                context.drawImage(towerImage, state.position.x - 34 / 2, state.position.y - 34 / 2, 34, 34)
+            if (Sprites.boss.complete) {
+                let scale = 2;
+                context.drawImage(Sprites.boss, state.position.x - Sprites.boss.width * scale / 2, state.position.y- Sprites.boss.height * scale, Sprites.boss.width * scale, Sprites.boss.height * scale);
             }
         },
         fysik(delta) {
@@ -67,10 +69,10 @@ function drawBullet(context, bullet, color) {
 
         context.beginPath();
         context.arc(bullet.x, bullet.y, 8, 0, 2 * Math.PI, false);
-        context.fillStyle = 'white';
+        context.fillStyle = '#f7a7d0';
         context.fill();
         context.lineWidth = 2;
-        context.strokeStyle = '#ac00ff';
+        context.strokeStyle = '#ba3278';
         context.stroke();
     }
 }

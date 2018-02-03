@@ -65,10 +65,11 @@ export default function (storeDependencies, entityState) {
 
         lastTime += delta;
         if (lastTime > enemyTimeToShoot) {
-            console.log('fireWeapon');
-            localStore.dispatch('fireWeapon', {
+            localStore.dispatch('fireEnemyWeapon', {
                 id: entityState.id,
                 isEnemy: true,
+                x: entityState.position.x,
+                y: entityState.position.y - 55
             });
             lastTime = 0;
             // lastTime -= enemyTimeToShoot

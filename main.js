@@ -268,42 +268,7 @@ export default function () {
                         commit('ADD_BURN', { x, y });
                     }, Math.round(Math.random() * 200) + 1000);
                 },
-                fireEnemyWeapon({ state, commit }) {
-                    let shadowDimension = Math.random() > 0.5;
-                    let shots = 25 + Math.round(Math.random() * 2);
-                    let randomPlayerId = Object.keys(state.playersById)[0];
-                    let player = state.playersById[randomPlayerId];
-                    let targetDir = Math.atan2(player.position.y - 400, player.position.x - 400);
-                    for (let directionRad = targetDir - Math.PI / 40; directionRad < targetDir + Math.PI / 40; directionRad += (Math.PI / 10) / shots) {
-
-                        let bulletId = genId();
-                        let newDirectionX = Math.cos(directionRad);
-                        let newDirectionY = Math.sin(directionRad);
-
-                        let bullet = {
-                            x: 400 + Math.random() * 1,
-                            y: 400 + Math.random() * 1,
-                            id: bulletId,
-                            shooterId: null,
-                            direction: {
-                                x: newDirectionX * (0.5 + Math.random() * 0.2),
-                                y: newDirectionY * (0.5 + Math.random() * 0.2)
-                            },
-                            isEnemy: true,
-                            height: 22,
-                            shadowDimension: shadowDimension
-                        };
-                        commit('ADD_BULLET', bullet);
-
-                        setTimeout(() => {
-                            if (!state.bullets[bulletId]) return;
-                            let { x, y } = state.bullets[bulletId];
-                            commit('REMOVE_BULLET', bulletId);
-                            commit('ADD_BURN', { x, y })
-                        }, Math.round(Math.random() * 200) + 5000);
-                    }
-                },
-                fireWeapon({ state, commit }, { id: entityId, isEnemy }) {
+                fireEnemyWeapon({ state, commit }, { id: entityId, x, y }) {
                     let id = entityId;
                     let entity = state.entitiesById[entityId];
                     let shadowDimension = Math.random() > 0.5;
@@ -318,8 +283,8 @@ export default function () {
                         let newDirectionY = Math.sin(directionRad);
 
                         let bullet = {
-                            x: entityPos.x + Math.random(),
-                            y: entityPos.y + Math.random(),
+                            x: x,
+                            y: y,
                             id: bulletId,
                             shooterId: null,
                             direction: {
