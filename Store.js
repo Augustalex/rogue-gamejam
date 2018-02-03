@@ -26,6 +26,9 @@ function Store({ store: storeOptions, modules = {} }) {
             rootStore.dispatch(action, argument)
         }
         else {
+            if (!storeOptions.actions[action]) {
+                throw new Error(`The action "${action}" is not in the store.`);
+            }
             storeOptions.actions[action](store, argument)
         }
     }

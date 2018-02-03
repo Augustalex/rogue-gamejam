@@ -10,6 +10,7 @@ import draw from './draw.js';
 import AudioEngine from './audio/AudioEngine.js';
 import utils from './utils.js';
 import Enemy from './enemy/Enemy.js';
+import Boss from './enemy/Boss.js';
 import EnemyFactory from './enemy/EnemyFactory.js';
 
 const { genId, rand255, rHue, rColor } = utils;
@@ -33,7 +34,7 @@ export default function () {
                 y: World.playerSpawn.y,
             },
             color,
-            speed: 30,
+            speed: 300,
             shooting: {
                 direction: {
                     x: 0,
@@ -51,10 +52,12 @@ export default function () {
     let localStore = Store({
         store: {
             state: {
+                clientId,
+                //TODO should be called "entityById"
                 entitiesById: {},
                 localPlayerDead: true,
                 playersById: {},
-                bullets: {},
+                bullets: [],
                 bulletsByShooterId: {},
                 removeRequests: [],
                 blood: null
@@ -174,6 +177,12 @@ export default function () {
                     if (state.blood) {
                         state.blood.addBurn(x, y, 3)
                     }
+                },
+                SET_ENTITY_MOVING({ state }, { id, x, y }) {
+                    state.entitiesById[id].setMoving(x, y);
+                },
+                SET_ENTITY_POS({ state }, { id, x, y }) {
+                    state.entitiesById[id].setPosition(x, y);
                 }
             },
             actions: {
@@ -294,22 +303,23 @@ export default function () {
                         }, Math.round(Math.random() * 200) + 5000);
                     }
                 },
-                fireWeapon({ state, commit }, { entity, isEnemy }) {
-                    let id = entity.id;
+                fireWeapon({ state, commit }, { id: entityId, isEnemy }) {
+                    let id = entityId;
+                    let entity = state.entitiesById[entityId];
                     let shadowDimension = Math.random() > 0.5;
                     let shots = 15 + Math.round(Math.random() * 2);
                     let randomPlayerId = Object.keys(state.playersById)[0];
                     let player = state.playersById[randomPlayerId];
-                    let targetDir = Math.atan2(player.position.y - entity.y, player.position.x - entity.x);
-                    for (let directionRad = targetDir - Math.PI /40; directionRad < targetDir + Math.PI /40; directionRad += (Math.PI /10) / shots) {
-
+                    let entityPos = entity.getPosition();
+                    let targetDir = Math.atan2(player.position.y - entityPos.y, player.position.x - entityPos.x);
+                    for (let directionRad = targetDir - Math.PI / 40; directionRad < targetDir + Math.PI / 40; directionRad += (Math.PI / 10) / shots) {
                         let bulletId = genId();
                         let newDirectionX = Math.cos(directionRad);
                         let newDirectionY = Math.sin(directionRad);
 
                         let bullet = {
-                            x: entity.x + Math.random() * 1,
-                            y: entity.y + Math.random() * 1,
+                            x: entityPos.x + Math.random(),
+                            y: entityPos.y + Math.random(),
                             id: bulletId,
                             shooterId: null,
                             direction: {
@@ -320,20 +330,23 @@ export default function () {
                             height: 22,
                             shadowDimension: shadowDimension
                         };
-                        commit('ADD_BULLET', bullet);
-                        //commit('ADD_ENTITY_BULLET', {id, bullet});  LAGGY
+                        commit('ADD_ENTITY_BULLET', { id, bullet });
 
                         setTimeout(() => {
                             if (!state.bullets[bulletId]) return;
                             let { x, y } = state.bullets[bulletId];
-                            commit('REMOVE_BULLET', bulletId);
-                            //commit('REMOVE_ENTITY_BULLET', bulletId); LAGGY
+                            commit('REMOVE_ENTITY_BULLET', { shooterId: id, bulletId });
                             commit('ADD_BURN', { x, y })
                         }, Math.round(Math.random() * 200) + 5000);
                     }
                 },
                 createEnemy({ state, commit }, enemyState) {
                     let enemy = Enemy({ store, localStore }, enemyState);
+                    commit('ADD_ENTITY', enemy);
+                    enemy.loadSprite();
+                },
+                createBoss({ state, commit }, enemyState) {
+                    let enemy = Boss({ store, localStore }, enemyState);
                     commit('ADD_ENTITY', enemy);
                     enemy.loadSprite();
                 }
@@ -346,8 +359,8 @@ export default function () {
         store: localStore
     });
     store.commit('ADD_PLAYER', createOwnPlayer());
-    let enemyFactory = EnemyFactory({ localStore, store });
-    enemyFactory.createEnemy({
+    let enemyFactory = EnemyFactory({ localStore, store }, { controllerId: clientId });
+    enemyFactory.createBoss({
         x: World.boss.x,
         y: World.boss.y,
     });
@@ -366,7 +379,7 @@ export default function () {
     let respawning = false;
     let lastTime = 0;
     const loop = async time => {
-        let delta = ((time - lastTime) * .01) || .16;
+        let delta = ((time - lastTime) * .001) || .16;
         lastTime = time;
         inputController.updateInput(inputHookDependencies);
         // input(store, clientId);

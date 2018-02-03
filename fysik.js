@@ -1,10 +1,10 @@
 const constants = {
-    bulletSpeed: 60,
-    timeToShoot: 9,
-    enemyTimeToShoot: 50,
+    bulletSpeed: 1000,
+    timeToShoot: .5,
+    enemyTimeToShoot: 30,
     playerSize: 10,
     fallingBullets: true,
-    bulletGravity: 0.001,
+    bulletGravity: 1,
 };
 
 let playerObjectsById = {};
@@ -224,10 +224,13 @@ function intersect(x1, y1, x2, y2, x3, y3, x4, y4) {
 }
 
 function bulletFysik({ store, localStore }, delta) {
-    for (let shooterId of Object.keys(store.state.bulletsByShooterId)) {
+    // var t0 = performance.now();
+    for (let shooterId in store.state.bulletsByShooterId) {
+        if (!store.state.bulletsByShooterId.hasOwnProperty(shooterId)) continue;
         if (!store.state.bulletsByShooterId[shooterId]) continue;
 
-        for (let bulletId of Object.keys(store.state.bulletsByShooterId[shooterId])) {
+        for (let bulletId in store.state.bulletsByShooterId[shooterId]) {
+            if (!store.state.bulletsByShooterId[shooterId].hasOwnProperty(bulletId)) continue;
             let bullet = store.state.bulletsByShooterId[shooterId][bulletId];
 
             let newPos = {
@@ -280,7 +283,9 @@ function bulletFysik({ store, localStore }, delta) {
                 }
             }
 
-            localStore.commit('SET_ENTITY_BULLET_POS', Object.assign({ id: shooterId, bulletId }, newPos));
+            localStore.commit('SET_ENTITY_BULLET_POS', { id: shooterId, bulletId, x: newPos.x, y: newPos.y });
         }
     }
+    // var t1 = performance.now();
+    // console.log("Call to ENTITY BULLETS took " + (t1 - t0) + " milliseconds.")
 }
