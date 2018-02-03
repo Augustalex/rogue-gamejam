@@ -177,7 +177,7 @@ export default function draw(finalCanvas, finalContext, store, localStore, clien
             let dir = Math.atan2(bullet.direction.y, bullet.direction.x);
             if (shadows) {
                 context.fillStyle = 'black';
-                context.globalAlpha = 0.8;
+                context.globalAlpha = 0.6;
                 fillRectRot(bullet.x, bullet.y + bullet.height + 2, 12, 4, dir)
             }
             context.globalAlpha = bullet.height;
