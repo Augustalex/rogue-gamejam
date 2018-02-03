@@ -45,13 +45,12 @@ export default function (storeDependencies, entityState) {
             x: movingX,
             y: movingY
         };
-        console.log('data', data);
         store.commit('SET_ENTITY_MOVING', data);
     };
 
     return (delta) => {
         if (!inPosition) {
-            store.commit('SET_ENTITY_POS', { id: entityState.id, ...getNextTargetLocation() });
+            //store.commit('SET_ENTITY_POS', { id: entityState.id, ...getNextTargetLocation() });
             move();
             inPosition = true;
         }
@@ -69,10 +68,9 @@ export default function (storeDependencies, entityState) {
                 id: entityState.id,
                 isEnemy: true,
                 x: entityState.position.x,
-                y: entityState.position.y - 55
+                y: entityState.position.y - 80
             });
-            lastTime = 0;
-            // lastTime -= enemyTimeToShoot
+            lastTime -= enemyTimeToShoot
         }
 
         let x = entityState.position.x;

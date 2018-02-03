@@ -1,4 +1,5 @@
 import utils from "../utils.js";
+import Boss from "./Boss.js";
 
 const { genId, rand255, rHue, rColor } = utils;
 
@@ -15,20 +16,20 @@ export default function (storeDeps, { controllerId }) {
         store.dispatch('createEnemy', enemyState);
     }
 
-    function createBoss() {
-        let enemyState = newEnemyBaseState({ controllerId });
+    function createBoss({ x, y }) {
+        let enemyState = Boss.createState({ controllerId, x, y });
         store.dispatch('createBoss', enemyState);
     }
 }
 
-function newEnemyBaseState({ controllerId }) {
-    return {
+function newEnemyBaseState({ controllerId, x, y }) {
+    let state = {
         clone: false,
         id: genId(),
         color: rColor(),
         position: {
-            x: Math.round(1200 * Math.random()),
-            y: Math.round(1200 * Math.random())
+            x: x,
+            y: y
         },
         moving: {
             x: 0,
@@ -37,4 +38,5 @@ function newEnemyBaseState({ controllerId }) {
         speed: 100,
         controllerId
     };
+    return state;
 }

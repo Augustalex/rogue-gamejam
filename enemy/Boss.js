@@ -5,10 +5,10 @@ import Sprites from '../sprites.js';
 
 const { genId, rand255, rHue, rColor } = utils;
 
-export default function (storeDependencies, state) {
+function Boss(storeDependencies, state) {
     let { store, localStore } = storeDependencies;
 
-    state.speed = 20;
+    state.speed = 40;
 
     let {
         id,
@@ -41,20 +41,59 @@ export default function (storeDependencies, state) {
             });
         },
         render(context) {
-            for (let bulletId of Object.keys(store.state.bulletsByShooterId[id])) {
-                drawBullet(context, store.state.bulletsByShooterId[id][bulletId], color)
+            let bullets = Object.keys(store.state.bulletsByShooterId[id]).map(bulletId => store.state.bulletsByShooterId[id][bulletId])
+            let behindBoss = bullets.filter(b => b.y <= state.position.y - 80); // todo make variable shoot offset and use in fysik
+            let inFrontOffBoss = bullets.filter(b => b.y > state.position.y - 80); // todo make variable shoot offset and use in fysik
+            for (let bullet of behindBoss) {
+                drawBullet(context, bullet, color)
             }
-
             if (Sprites.boss.complete) {
                 let scale = 2;
-                context.drawImage(Sprites.boss, state.position.x - Sprites.boss.width * scale / 2, state.position.y- Sprites.boss.height * scale, Sprites.boss.width * scale, Sprites.boss.height * scale);
+
+                state.currentFrame+=0.5;
+                if(state.currentFrame > 23.5){
+                    state.currentFrame = 0;
+                }
+                let frame = Math.floor(state.currentFrame);
+                let subImage = Sprites.bossPast[frame];
+                context.drawImage(subImage, state.position.x - Sprites.boss.width * scale / 2, state.position.y - Sprites.boss.height * scale, Sprites.boss.width * scale, Sprites.boss.height * scale);
             }
+            for (let bullet of inFrontOffBoss) {
+                drawBullet(context, bullet, color)
+                let xPos = state.position.x;
+                let yPos = state.position.y;
+                let horDist = bullet.x - xPos;
+                let vertDist = bullet.y - yPos;
+                let dist =  Math.sqrt(horDist * horDist + vertDist * vertDist);
+                let dir =  Math.atan2(vertDist +80, horDist);
+                //fillRectRot(context, xPos + Math.cos(dir)*dist/2, yPos -80 + Math.sin(dir)*dist/2,dist,6,dir);
+            }
+
         },
         fysik(delta) {
             bossFysik(delta)
         }
     }
-}
+};
+Boss.createState = function ({ controllerId, x, y }) {
+    return {
+        clone: false,
+        id: genId(),
+        color: rColor(),
+        position: {
+            x: x,
+            y: y
+        },
+        moving: {
+            x: 0,
+            y: 0
+        },
+        currentFrame: 0,
+        speed: 100,
+        controllerId
+    };
+};
+export default Boss;
 
 function drawBullet(context, bullet, color) {
     if (bullet.isEnemy) {
@@ -75,4 +114,13 @@ function drawBullet(context, bullet, color) {
         context.strokeStyle = '#ba3278';
         context.stroke();
     }
+}
+
+
+function fillRectRot(context, x, y, width, height, dir) {
+    context.save();
+    context.translate(x, y);
+    context.rotate(dir);
+    context.fillRect(-width / 2, -height / 2, width, height);
+    context.restore()
 }
