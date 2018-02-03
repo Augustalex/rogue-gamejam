@@ -1,9 +1,11 @@
+import World from './world.js';
 var backgroundImage = new Image();
 backgroundImage.src = './sprites/sprite_Tile_Edge.png';
 var vignetteImage = new Image();
 vignetteImage.src = './sprites/vignette.png';
 var towerImage = new Image();
 towerImage.src = './sprites/tower.png';
+
 
 let shadows = true; // Also enable fallingBullets in fysik.js
 let perspective = true;
@@ -30,12 +32,11 @@ export default function draw(finalCanvas, finalContext, store, localStore, clien
         vignetteCanvas.width = finalCanvas.width;
         vignetteCanvas.height = finalCanvas.height
     }
-
     let canvas = preRenderSurface;
     let context = preRenderSurface.getContext('2d');
     context.clearRect(0, 0, canvas.width, canvas.height);
-    let tilesHor = canvas.width / 32;
-    let tilesVert = canvas.height / 32;
+    let tilesHor = World.width / 32;
+    let tilesVert = World.height / 32;
     context.imageSmoothingEnabled = false;
     if (backgroundImage.complete) {
         if (initial) {

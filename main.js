@@ -1,4 +1,5 @@
 import Blood from './Blood.js';
+import World from './world.js';
 // import io from './node_modules/socket.io-client/dist/socket.io.slim.js';
 import Store from './Store.js';
 import StoreProxy from './StoreProxy.js';
@@ -28,8 +29,8 @@ export default function () {
         return {
             id: clientId,
             position: {
-                x: rand255(),
-                y: rand255(),
+                x: World.playerSpawn.x,
+                y: World.playerSpawn.y,
             },
             color,
             speed: 30,
@@ -346,7 +347,10 @@ export default function () {
     });
     store.commit('ADD_PLAYER', createOwnPlayer());
     let enemyFactory = EnemyFactory({ localStore, store });
-    enemyFactory.createEnemy();
+    enemyFactory.createEnemy({
+        x: World.boss.x,
+        y: World.boss.y,
+    });
 
     let canvas = document.createElement('canvas');
     canvas.width = window.innerWidth - 32;
