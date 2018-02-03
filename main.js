@@ -32,7 +32,7 @@ export default function () {
                 y: rand255(),
             },
             color,
-            speed: 20,
+            speed: 30,
             shooting: {
                 direction: {
                     x: 0,

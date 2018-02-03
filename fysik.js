@@ -105,16 +105,23 @@ function Player({ localStore, store, playerId }) {
         },
         fysik(delta) {
             let player = store.state.playersById[playerId];
+            let aiming = player.shooting.direction.x || player.shooting.direction.y;
+            let shooting = aiming && !player.teleporting;
             let x = player.position.x;
             let y = player.position.y;
             lastPosition.x = x;
             lastPosition.y = y;
 
+            let speed = player.speed;
+            if(shooting){
+                speed /= 2;
+            }
+
             if (player.moving && player.moving.x) {
-                x += player.speed * delta * player.moving.x
+                x += speed * delta * player.moving.x
             }
             if (player.moving && player.moving.y) {
-                y += player.speed * delta * player.moving.y
+                y += speed * delta * player.moving.y
             }
 
             currentPosition.x = x;
@@ -126,33 +133,31 @@ function Player({ localStore, store, playerId }) {
             //     store.dispatch('addBloodTrail', playerId)
             // }
 
-            if (player.shooting.direction.x || player.shooting.direction.y) {
-                if (player.teleporting) {
-                    let dist = player.teleportCursor.x * player.teleportCursor.x + player.teleportCursor.y * player.teleportCursor.y;
-                    dist = Math.min(Math.max(Math.sqrt(dist) / 10, 1), 2);
-                    player.teleportCursor.x += player.shooting.direction.x * 10 / dist;
-                    player.teleportCursor.y += player.shooting.direction.y * 10 / dist;
+            if (player.teleporting) {
+                let dist = player.teleportCursor.x * player.teleportCursor.x + player.teleportCursor.y * player.teleportCursor.y;
+                dist = Math.min(Math.max(Math.sqrt(dist) / 10, 1), 2);
+                player.teleportCursor.x += player.shooting.direction.x * 10 / dist;
+                player.teleportCursor.y += player.shooting.direction.y * 10 / dist;
+            }
+            else if (shooting) {
+                if (!player.shooting.timeToShoot) {
+                    player.shooting.timeToShoot = constants.timeToShoot
                 }
-                else {
-                    if (!player.shooting.timeToShoot) {
-                        player.shooting.timeToShoot = constants.timeToShoot
-                    }
-                    let newTimeToShoot = player.shooting.timeToShoot - delta;
-                    if (newTimeToShoot <= 0) {
-                        let overFlow = -newTimeToShoot;
-                        newTimeToShoot = constants.timeToShoot - overFlow;
-                        localStore.dispatch('firePlayerWeapon', {
-                            id: playerId,
-                            direction: player.shooting.direction,
-                        });
-                    }
-                    localStore.commit('MERGE_PLAYER_SHOOTING', {
+                let newTimeToShoot = player.shooting.timeToShoot - delta;
+                if (newTimeToShoot <= 0) {
+                    let overFlow = -newTimeToShoot;
+                    newTimeToShoot = constants.timeToShoot - overFlow;
+                    localStore.dispatch('firePlayerWeapon', {
                         id: playerId,
-                        shooting: {
-                            timeToShoot: newTimeToShoot
-                        }
-                    })
+                        direction: player.shooting.direction,
+                    });
                 }
+                localStore.commit('MERGE_PLAYER_SHOOTING', {
+                    id: playerId,
+                    shooting: {
+                        timeToShoot: newTimeToShoot
+                    }
+                });
             }
 
             if (player.teleporting) {
