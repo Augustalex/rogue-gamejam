@@ -1,7 +1,7 @@
 const constants = {
     bulletSpeed: 50,
     timeToShoot: .5,
-    enemyTimeToShoot: 20,
+    enemyTimeToShoot: 30,
     playerSize: 10,
     fallingBullets: true,
     bulletGravity: .5,

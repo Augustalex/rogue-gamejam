@@ -299,30 +299,38 @@ export default function () {
                 },
                 fireWeapon({ state, commit }, { entity, isEnemy }) {
                     let id = entity.id;
-                    let shots = 3 + Math.round(Math.random() * 2);
-                    for (let directionRad = 0; directionRad < Math.PI * 2; directionRad += Math.PI * 2 / shots) {
+                    let shadowDimension = Math.random() > 0.5;
+                    let shots = 4 + Math.round(Math.random() * 2);
+                    let randomPlayerId = Object.keys(state.playersById)[0];
+                    let player = state.playersById[randomPlayerId];
+                    let targetDir = Math.atan2(player.position.y - entity.y, player.position.x - entity.x);
+                    for (let directionRad = targetDir - Math.PI /40; directionRad < targetDir + Math.PI /40; directionRad += (Math.PI /10) / shots) {
 
                         let bulletId = genId();
                         let newDirectionX = Math.cos(directionRad);
                         let newDirectionY = Math.sin(directionRad);
+
                         let bullet = {
-                            x: entity.x,
-                            y: entity.y,
+                            x: entity.x + Math.random() * 1,
+                            y: entity.y + Math.random() * 1,
                             id: bulletId,
-                            shooterId: id,
+                            shooterId: null,
                             direction: {
-                                x: newDirectionX / 3,
-                                y: newDirectionY / 3
+                                x: newDirectionX * (0.5 + Math.random() * 0.1),
+                                y: newDirectionY * (0.5 + Math.random() * 0.1)
                             },
-                            isEnemy: isEnemy,
-                            height: 22
+                            isEnemy: true,
+                            height: 22,
+                            shadowDimension: shadowDimension
                         };
-                        commit('ADD_ENTITY_BULLET', { id, bullet });
+                        commit('ADD_BULLET', bullet);
+                        //commit('ADD_ENTITY_BULLET', {id, bullet});  LAGGY
 
                         setTimeout(() => {
-                            if (!state.bulletsByShooterId[id]) return;
-                            let { x, y } = state.bulletsByShooterId[id];
-                            commit('REMOVE_ENTITY_BULLET', id);
+                            if (!state.bullets[bulletId]) return;
+                            let { x, y } = state.bullets[bulletId];
+                            commit('REMOVE_BULLET', bulletId);
+                            //commit('REMOVE_ENTITY_BULLET', bulletId); LAGGY
                             commit('ADD_BURN', { x, y })
                         }, Math.round(Math.random() * 200) + 5000);
                     }
