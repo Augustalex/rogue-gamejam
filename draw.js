@@ -1,4 +1,5 @@
 import World from './world.js';
+import Sprites from './sprites.js';
 var backgroundImage = new Image();
 backgroundImage.src = './sprites/sprite_Tile_Edge.png';
 var vignetteImage = new Image();
@@ -39,6 +40,7 @@ export default async function draw(finalCanvas, finalContext, store, localStore,
         first = false;
         heavyBrickLefts = await loadHeavyBricks('Left');
         heavyBrickRights = await loadHeavyBricks('Right');
+        await Sprites.loadResources();
     }
     let canvas = preRenderSurface;
     let context = preRenderSurface.getContext('2d');
@@ -154,36 +156,8 @@ export default async function draw(finalCanvas, finalContext, store, localStore,
             fillRectRot(x, y + 12, 10, 10, dir);
             context.filter = "none";
         }
-
-        context.fillStyle = color;
-        if (perspective) {
-            let horMult = Math.sin(dir + Math.PI / 4);
-            let vertMult = Math.cos(dir + Math.PI / 4);
-            if (dir === 0 || (dir / (Math.PI / 2) % 1 === 0)) {
-                horMult = Math.sin(dir);
-                vertMult = Math.cos(dir);
-            }
-            var gradient = context.createLinearGradient(0, 0, horMult * 8, vertMult * 8);
-            context.globalAlpha = 1;
-            gradient.addColorStop(0, color);
-            gradient.addColorStop(1, "black");
-            for (let yy = y + 10; yy > y; yy -= 1) {
-                context.fillStyle = gradient;
-                fillRectRot(x, yy, 10, 10, dir)
-            }
-            context.globalAlpha = 1;
-            gradient = context.createLinearGradient(0, 0, horMult * 12, vertMult * 12);
-            gradient.addColorStop(0, color);
-            gradient.addColorStop(1, "black");
-            context.fillStyle = gradient
-        }
         context.globalAlpha = 1;
-        fillRectRot(x, y, 10, 10, dir);
-        context.fillStyle = color;
-        let gunPosX = x + Math.cos(dir + Math.PI / 4) * 9;
-        let gunPosY = y + Math.sin(dir + Math.PI / 4) * 9;
-        fillRectRot(gunPosX, gunPosY, 8, 3, dir)
-
+        context.drawImage(Sprites.character, x - 6 , y - 30);
     }
 
     function drawBullet(context, bullet, color) {
