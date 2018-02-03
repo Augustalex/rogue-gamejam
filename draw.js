@@ -22,14 +22,22 @@ export default function draw(finalCanvas, finalContext, store, localStore, clien
         preRenderSurface.width = finalCanvas.width;
         preRenderSurface.height = finalCanvas.height
     }
+    if (vignetteImage.complete && !vignetteCanvas) {
+        vignetteCanvas = document.createElement('canvas');
+        vignetteCanvas.width = finalCanvas.width;
+        vignetteCanvas.height = finalCanvas.height
+    }
+
     let canvas = preRenderSurface;
     let context = preRenderSurface.getContext('2d');
     context.clearRect(0, 0, canvas.width, canvas.height);
     let tilesHor = canvas.width / 32;
     let tilesVert = canvas.height / 32;
+
     //context.mozImageSmoothingEnabled = false;
     //context.webkitImageSmoothingEnabled = false;
     //context.msImageSmoothingEnabled = false;
+
     context.imageSmoothingEnabled = false;
     if (backgroundImage.complete) {
         for (let x = -128; x < 32 * tilesHor; x += 32) {
@@ -54,44 +62,9 @@ export default function draw(finalCanvas, finalContext, store, localStore, clien
         let bullet = store.state.bullets[bulletId];
         drawBullet(context, bullet, colorByShooterId[bullet.shooterId])
     }
-    if (vignetteImage.complete && !vignetteCanvas) {
-        vignetteCanvas = document.createElement('canvas');
-        vignetteCanvas.width = canvas.width;
-        vignetteCanvas.height = canvas.height
-    }
-
-    if (vignetteCanvas && !store.state.localPlayerDead) {
-        let playerHealth = store.state.playersById[clientId].health;
-        let vignetteContext = vignetteCanvas.getContext('2d');
-        vignetteContext.clearRect(0, 0, vignetteCanvas.width, vignetteCanvas.height);
-        context.globalAlpha = 0.5;
-        vignetteContext.globalCompositeOperation = 'source-over';
-        vignetteContext.drawImage(vignetteImage, 0, 0, vignetteCanvas.width, vignetteCanvas.height);
-        vignetteContext.globalCompositeOperation = 'source-in';
-        vignetteContext.fillStyle = `rgb(${255 * ((100 - playerHealth) / 100)},0,0)`;
-        //vignetteContext.fillRect(0, 0, canvas.width, canvas.height);
-        context.drawImage(vignetteCanvas, 0, 0, canvas.width, canvas.height);
-        context.globalAlpha = 1;
-    }
 
     if (towerImage.complete) {
         context.drawImage(towerImage, 400 - 34 / 2, 400 - 34 / 2, 34, 34)
-    }
-
-    if (store.state.localPlayerDead) {
-        context.filter = "brightness(.2)";
-        context.globalAlpha = 1;
-        context.drawImage(canvas, 0, 0);
-        context.filter = "none";
-        context.globalCompositeOperation = "source-over";
-    }
-    else {
-        context.filter = "brightness(" + 1.0 + ") blur(" + 8 + "px)";
-        context.globalCompositeOperation = "lighten";
-        context.globalAlpha = 0.6;
-        //context.drawImage(canvas, 0, 0);
-        context.filter = "none";
-        context.globalCompositeOperation = "source-over";
     }
 
     context.globalAlpha = 1;
@@ -100,9 +73,20 @@ export default function draw(finalCanvas, finalContext, store, localStore, clien
     let sx = players[0].position.x - (canvas.width / zoom) / 2;
     let sy = players[0].position.y - (canvas.height / zoom) / 2;
     //context.FillRect(0, 0, canvas.width, canvas.height);
-    context.fillStyle = "black";
+    finalContext.fillStyle = "black";
     finalContext.fillRect(0, 0, canvas.width, canvas.height);
     finalContext.drawImage(preRenderSurface, sx, sy, canvas.width / zoom, canvas.height / zoom, 0, 0, canvas.width, canvas.height);
+
+    if (vignetteCanvas && !store.state.localPlayerDead) {
+        applyVignette(store, clientId, finalCanvas, finalContext);
+    }
+
+    if (store.state.localPlayerDead) {
+        applyDarkScreenEffect(finalCanvas, finalContext)
+    }
+    else {
+        applyBloom(finalContext);
+    }
 
     function drawPlayer(context, { position: { x, y }, color, moving, shooting }) {
         context.fillStyle = color;
@@ -189,4 +173,35 @@ export default function draw(finalCanvas, finalContext, store, localStore, clien
         context.fillRect(-width / 2, -height / 2, width, height);
         context.restore()
     }
+}
+
+function applyDarkScreenEffect(finalCanvas, finalContext) {
+    finalContext.filter = "brightness(.2)";
+    finalContext.globalAlpha = 1;
+    finalContext.drawImage(canvas, 0, 0);
+    finalContext.filter = "none";
+    finalContext.globalCompositeOperation = "source-over";
+}
+
+function applyBloom(finalContext) {
+    finalContext.filter = "brightness(" + 1.0 + ") blur(" + 8 + "px)";
+    finalContext.globalCompositeOperation = "lighten";
+    finalContext.globalAlpha = 0.6;
+    //finalContext.drawImage(canvas, 0, 0);
+    finalContext.filter = "none";
+    finalContext.globalCompositeOperation = "source-over";
+}
+
+function applyVignette(store, clientId, finalCanvas, finalContext) {
+    let playerHealth = store.state.playersById[clientId].health;
+    let vignetteContext = vignetteCanvas.getContext('2d');
+    vignetteContext.clearRect(0, 0, vignetteCanvas.width, vignetteCanvas.height);
+    finalContext.globalAlpha = 0.5;
+    vignetteContext.globalCompositeOperation = 'source-over';
+    vignetteContext.drawImage(vignetteImage, 0, 0, vignetteCanvas.width, vignetteCanvas.height);
+    vignetteContext.globalCompositeOperation = 'source-in';
+    vignetteContext.fillStyle = `rgb(${255 * ((100 - playerHealth) / 100)},0,0)`;
+    vignetteContext.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+    finalContext.drawImage(vignetteCanvas, 0, 0, finalCanvas.width, finalCanvas.height);
+    finalContext.globalAlpha = 1;
 }
