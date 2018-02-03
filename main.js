@@ -7,15 +7,16 @@ import inputLogic from './inputLogic.js';
 import fysik from './fysik.js';
 import draw from './draw.js';
 import AudioEngine from './audio/AudioEngine.js';
+import utils from './utils.js';
+import Enemy from './enemy/Enemy.js';
+
+const { genId, rand255, rHue, rColor } = utils;
 
 export default function () {
     let socket = io.connect(`${window.location.hostname}:3032`);
     console.log(window.location.hostname);
     //let socket = io.connect('http://192.168.1.106:3032');
-    const rand255 = () => Math.round(Math.random() * 255);
-    const rHue = () => Math.round(Math.random() * 360);
-    const genId = () => `${rand255()}${rand255()}${rand255()}`;
-    const color = `hsl(${rHue()},100%,80%)`;
+    const color = rColor();
     const clientId = `${rand255()}${rand255()}`;
     console.log('clientId: ', clientId);
 
@@ -48,9 +49,11 @@ export default function () {
     let localStore = Store({
         store: {
             state: {
+                entities: [],
                 localPlayerDead: true,
                 playersById: {},
                 bullets: {},
+                bulletsByShooterId: {},
                 removeRequests: [],
                 blood: null
             },
@@ -93,8 +96,23 @@ export default function () {
                         state.localPlayerDead = false
                     }
                 },
+                ADD_ENTITY({ state }, entity) {
+                    state.entities.push(entity);
+                },
                 ADD_BULLET({ state }, bullet) {
                     state.bullets[bullet.id] = bullet
+                },
+                ADD_ENTITY_BULLET({ state }, { id, bullet }) {
+                    state.bulletsByShooterId[id][bullet.id] = bullet;
+                },
+                REMOVE_ENTITY_BULLET({ state }, { bulletId, shooterId }) {
+                    if (state.bulletsByShooterId[shooterId] && state.bulletsByShooterId[shooterId][bulletId]) {
+                        state.removeRequests.push({
+                            firstKey: 'bulletsByShooterId',
+                            secondKey: shooterId,
+                            thirdKey: bulletId
+                        })
+                    }
                 },
                 SET_BULLET_POS({ state }, { id, x, y, height }) {
                     state.bullets[id].x = x;
@@ -114,6 +132,11 @@ export default function () {
                     player.teleporting = false;
                     player.position.x = player.position.x + player.teleportCursor.x;
                     player.position.y = player.position.y + player.teleportCursor.y;
+                },
+                SET_ENTITY_BULLET_POS({ state }, { id, bulletId, x, y, height }) {
+                    state.bulletsByShooterId[id][bulletId].x = x;
+                    state.bulletsByShooterId[id][bulletId].y = y;
+                    state.bulletsByShooterId[id][bulletId].height = height
                 },
                 REMOVE_PLAYER({ state }, playerId) {
                     if (state.playersById[playerId]) {
@@ -268,6 +291,41 @@ export default function () {
                             commit('ADD_BURN', { x, y })
                         }, Math.round(Math.random() * 200) + 5000);
                     }
+                },
+                fireWeapon({ state, commit }, { entity, isEnemy }) {
+                    let id = entity.id;
+                    let shots = 3 + Math.round(Math.random() * 2);
+                    for (let directionRad = 0; directionRad < Math.PI * 2; directionRad += Math.PI * 2 / shots) {
+
+                        let bulletId = genId();
+                        let newDirectionX = Math.cos(directionRad);
+                        let newDirectionY = Math.sin(directionRad);
+                        let bullet = {
+                            x: entity.x,
+                            y: entity.y,
+                            id: bulletId,
+                            shooterId: id,
+                            direction: {
+                                x: newDirectionX / 3,
+                                y: newDirectionY / 3
+                            },
+                            isEnemy: isEnemy,
+                            height: 22
+                        };
+                        commit('ADD_ENTITY_BULLET', { id, bullet });
+
+                        setTimeout(() => {
+                            if (!state.bulletsByShooterId[id]) return;
+                            let { x, y } = state.bulletsByShooterId[id];
+                            commit('REMOVE_ENTITY_BULLET', id);
+                            commit('ADD_BURN', { x, y })
+                        }, Math.round(Math.random() * 200) + 5000);
+                    }
+                },
+                createEnemy({ state, commit }, enemyState) {
+                    let enemy = Enemy({ store, localStore }, enemyState);
+                    commit('ADD_ENTITY', enemy);
+                    enemy.loadSprite();
                 }
             }
         }
@@ -278,6 +336,7 @@ export default function () {
         store: localStore
     });
     store.commit('ADD_PLAYER', createOwnPlayer());
+    localStore.state.entities.push(Enemy({ store, localStore }));
 
     let canvas = document.createElement('canvas');
     canvas.width = window.innerWidth - 32;
@@ -316,8 +375,11 @@ export default function () {
     loop();
 
     function gc() {
-        for (let { firstKey, secondKey, callback } of store.state.removeRequests) {
-            if (secondKey) {
+        for (let { firstKey, secondKey, thirdKey, callback } of store.state.removeRequests) {
+            if (thirdKey) {
+                delete store.state[firstKey][secondKey][thirdKey]
+            }
+            else if (secondKey) {
                 delete store.state[firstKey][secondKey]
             }
             else {

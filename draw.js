@@ -83,8 +83,8 @@ export default function draw(finalCanvas, finalContext, store, localStore, clien
         drawBullet(context, bullet, colorByShooterId[bullet.shooterId])
     }
 
-    if (towerImage.complete) {
-        context.drawImage(towerImage, 400 - 34 / 2, 400 - 34 / 2, 34, 34)
+    for (let entity of store.state.entities) {
+        entity.render(context);
     }
 
     context.globalAlpha = 1;

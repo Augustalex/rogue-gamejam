@@ -1,4 +1,4 @@
-let constants = {
+const constants = {
     bulletSpeed: 50,
     timeToShoot: .5,
     enemyTimeToShoot: 20,
@@ -8,7 +8,6 @@ let constants = {
 };
 
 let playerObjectsById = {};
-let enemy = null;
 setInterval(() => {
     playerObjectsById = {}
 }, Math.round(Math.random() * 5000) + 5000);
@@ -22,10 +21,12 @@ export default function fysik(localStore, store, delta) {
         }
         player.fysik(delta)
     }
-    if (!enemy) {
-        enemy = Enemy({ localStore, store })
+
+    for (let entity of store.state.entities) {
+        entity.fysik(delta);
     }
-    enemy.fysik(delta);
+
+    bulletFysik({ localStore, store }, delta);
 
     for (let bulletId of Object.keys(store.state.bullets)) {
         let bullet = store.state.bullets[bulletId];
@@ -80,21 +81,6 @@ export default function fysik(localStore, store, delta) {
         }
 
         localStore.commit('SET_BULLET_POS', Object.assign({ id: bulletId }, newPos))
-    }
-}
-
-function Enemy({ localStore, store }) {
-
-    let lastTime = 0;
-
-    return {
-        fysik(delta) {
-            lastTime += delta;
-            if (lastTime > constants.enemyTimeToShoot) {
-                localStore.dispatch('fireEnemyWeapon');
-                lastTime -= constants.enemyTimeToShoot
-            }
-        }
     }
 }
 
@@ -228,4 +214,66 @@ function intersect(x1, y1, x2, y2, x3, y3, x4, y4) {
 
     // lines_intersect
     return 1; //lines intersect, return true
+}
+
+function bulletFysik({ store, localStore }, delta) {
+    for (let shooterId of Object.keys(store.state.bulletsByShooterId)) {
+        if (!store.state.bulletsByShooterId[shooterId]) continue;
+
+        for (let bulletId of Object.keys(store.state.bulletsByShooterId[shooterId])) {
+            let bullet = store.state.bulletsByShooterId[shooterId][bulletId];
+
+            let newPos = {
+                x: bullet.x + bullet.direction.x * constants.bulletSpeed * delta,
+                y: bullet.y + bullet.direction.y * constants.bulletSpeed * delta
+            };
+            if (constants.fallingBullets) {
+                newPos.y += constants.bulletGravity * delta;
+                newPos.height = bullet.height - constants.bulletGravity * delta;
+                if (newPos.height <= 0) {
+                    localStore.commit('REMOVE_ENTITY_BULLET', { shooterId, bulletId });
+                    localStore.commit('ADD_BURN', newPos);
+                    return
+                }
+            }
+
+            let collidableObjects = Object.keys(playerObjectsById).map(k => playerObjectsById[k]);
+            for (let collidable of collidableObjects) {
+                if (collidable.id === bullet.shooterId) continue;
+
+                let playerPosition = collidable.currentPosition;
+
+                let playerWidth = collidable.width;
+                let playerHeight = collidable.height;
+                if (bullet.isEnemy) {
+                    // hack to collide with bigger bullets
+                    playerWidth = playerWidth * 2;
+                    playerHeight = playerHeight * 2
+                }
+                let playerTopLeft = {
+                    x: playerPosition.x - (playerWidth / 2),
+                    y: playerPosition.y - (playerHeight / 2)
+                };
+                let playerLines = [
+                    [playerTopLeft.x, playerTopLeft.y, playerTopLeft.x + playerWidth, playerTopLeft.y],
+                    [playerTopLeft.x + playerWidth, playerTopLeft.y, playerTopLeft.x + playerWidth, playerTopLeft.y + playerHeight],
+                    [playerTopLeft.x + playerWidth, playerTopLeft.y + playerHeight, playerTopLeft.x, playerTopLeft.y + playerHeight],
+                    [playerTopLeft.x, playerTopLeft.y + playerHeight, playerTopLeft.x, playerTopLeft.y],
+                ];
+
+                let intersects = playerLines.some(line => {
+                    return intersect(line[0], line[1], line[2], line[3], bullet.x, bullet.y, newPos.x, newPos.y)
+                });
+                if (intersects) {
+                    localStore.commit('REMOVE_ENTITY_BULLET', { shooterId, bulletId });
+                    store.dispatch('playerShot', {
+                        id: collidable.id,
+                        damage: 5
+                    })
+                }
+            }
+
+            localStore.commit('SET_ENTITY_BULLET_POS', Object.assign({ id: shooterId, bulletId }, newPos));
+        }
+    }
 }
