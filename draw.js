@@ -50,7 +50,7 @@ export default function draw(finalCanvas, finalContext, store, localStore, clien
         //context.fillRect(0, 0, canvas.width, canvas.height);
         //context.globalAlpha = 1;
     }
-    //store.state.blood.animateAndDraw();
+    store.state.blood.animateAndDraw(context);
 
     let players = Object.keys(store.state.playersById).map(key => store.state.playersById[key]);
     for (let player of players) {
@@ -196,7 +196,7 @@ function applyVignette(store, clientId, finalCanvas, finalContext) {
     let playerHealth = store.state.playersById[clientId].health;
     let vignetteContext = vignetteCanvas.getContext('2d');
     vignetteContext.clearRect(0, 0, vignetteCanvas.width, vignetteCanvas.height);
-    finalContext.globalAlpha = 0.5;
+    finalContext.globalAlpha = 0.8;
     vignetteContext.globalCompositeOperation = 'source-over';
     vignetteContext.drawImage(vignetteImage, 0, 0, vignetteCanvas.width, vignetteCanvas.height);
     vignetteContext.globalCompositeOperation = 'source-in';

@@ -9,7 +9,8 @@ import draw from './draw.js';
 import AudioEngine from './audio/AudioEngine.js';
 
 export default function () {
-    let socket = io.connect('http://127.0.0.1:3032');
+    let socket = io.connect(`${window.location.hostname}:3032`);
+    console.log(window.location.hostname);
     //let socket = io.connect('http://192.168.1.106:3032');
     const rand255 = () => Math.round(Math.random() * 255);
     const rHue = () => Math.round(Math.random() * 360);
@@ -216,8 +217,8 @@ export default function () {
                         if (!state.bullets[bulletId]) return;
                         let { x, y } = state.bullets[bulletId];
                         commit('REMOVE_BULLET', bulletId);
-                        commit('ADD_BURN', { x, y })
-                    }, Math.round(Math.random() * 200) + 5000);
+                        commit('ADD_BURN', { x, y });
+                    }, Math.round(Math.random() * 200) + 1000);
                 },
                 fireEnemyWeapon({ state, commit }) {
                     let shots = 3 + Math.round(Math.random() * 2);

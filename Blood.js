@@ -28,7 +28,7 @@ export default function (originalCanvas, originalContext) {
         particles = newParticles
     }
 
-    function render() {
+    function render(context) {
         let color = particles.length && particles[0].color;
         ctx.fillStyle = color;
         for (var i = 0; i < particles.length; i++) {
@@ -45,7 +45,7 @@ export default function (originalCanvas, originalContext) {
             ctx.fill();
         }
 
-        originalContext.drawImage(canvas, 0, 0, canvas.width, canvas.height)
+        context.drawImage(canvas, 0, 0, canvas.width, canvas.height)
     }
 
     return {
@@ -82,9 +82,9 @@ export default function (originalCanvas, originalContext) {
                 });
             }
         },
-        animateAndDraw() {
+        animateAndDraw(context) {
             animate();
-            render()
+            render(context)
         }
     };
 }

@@ -127,9 +127,11 @@ function Player({ localStore, store, playerId }) {
             currentPosition.x = x;
             currentPosition.y = y;
             localStore.commit('SET_PLAYER_POS', { id: playerId, x, y });
-            if (Math.random() < .2 * delta) {
-                store.dispatch('addBloodTrail', playerId)
-            }
+
+            // BLOOD TRAILS
+            // if (Math.random() < .2 * delta) {
+            //     store.dispatch('addBloodTrail', playerId)
+            // }
 
             if (player.shooting.direction.x || player.shooting.direction.y) {
                 if (!player.shooting.timeToShoot) {
