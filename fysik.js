@@ -1,10 +1,10 @@
 const constants = {
-    bulletSpeed: 50,
-    timeToShoot: .5,
+    bulletSpeed: 60,
+    timeToShoot: 9,
     enemyTimeToShoot: 50,
     playerSize: 10,
     fallingBullets: true,
-    bulletGravity: .5,
+    bulletGravity: 0.001,
 };
 
 let playerObjectsById = {};

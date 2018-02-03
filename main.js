@@ -365,13 +365,13 @@ export default function () {
 
     let respawning = false;
     let lastTime = 0;
-    const loop = time => {
+    const loop = async time => {
         let delta = ((time - lastTime) * .01) || .16;
         lastTime = time;
         inputController.updateInput(inputHookDependencies);
         // input(store, clientId);
         fysik(localStore, store, delta);
-        draw(canvas, context, store, localStore, clientId);
+        await draw(canvas, context, store, localStore, clientId);
 
         gc();
         if (!respawning && store.state.localPlayerDead) {
