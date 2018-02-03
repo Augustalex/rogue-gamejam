@@ -1,31 +1,18 @@
 import options from '../options.js'
 import utils from '../utils.js';
-import BasicFysik from './basicFysik.js';
+import BasicFysik from './BasicFysik.js';
 
 const { genId, rand255, rHue, rColor } = utils;
 
 export default function (storeDependencies, state) {
     let { store, localStore } = storeDependencies;
 
-    let isClone = !!state;
-    if (!state) {
-        state = newState();
-    }
     let {
         id,
         color,
         x,
         y
     } = state;
-
-    if (!isClone) {
-        store.dispatch('createEnemy', {
-            id,
-            color,
-            x,
-            y
-        });
-    }
 
     let towerImage = new Image();
     let basicFysik = BasicFysik(storeDependencies, state);
@@ -72,14 +59,4 @@ function drawBullet(context, bullet, color) {
         context.strokeStyle = '#ac00ff';
         context.stroke();
     }
-}
-
-function newState() {
-    return {
-        clone: false,
-        id: genId(),
-        color: rColor(),
-        x: Math.round(1800 * Math.random()),
-        y: Math.round(1800 * Math.random())
-    };
 }

@@ -9,6 +9,7 @@ import draw from './draw.js';
 import AudioEngine from './audio/AudioEngine.js';
 import utils from './utils.js';
 import Enemy from './enemy/Enemy.js';
+import EnemyFactory from './enemy/EnemyFactory.js';
 
 const { genId, rand255, rHue, rColor } = utils;
 
@@ -49,6 +50,7 @@ export default function () {
     let localStore = Store({
         store: {
             state: {
+                entitiesById: {},
                 entities: [],
                 localPlayerDead: true,
                 playersById: {},
@@ -97,6 +99,9 @@ export default function () {
                     }
                 },
                 ADD_ENTITY({ state }, entity) {
+                    state.entitiesById[entity.id] = entity;
+
+                    //TODO remove
                     state.entities.push(entity);
                 },
                 ADD_BULLET({ state }, bullet) {
@@ -119,15 +124,15 @@ export default function () {
                     state.bullets[id].y = y;
                     state.bullets[id].height = height
                 },
-                START_PLAYER_TELEPORTING({ state }, { id}) {
+                START_PLAYER_TELEPORTING({ state }, { id }) {
                     let player = state.playersById[id];
                     player.teleporting = true;
                     player.teleportCursor = {
-                        x : 0,
-                        y : 0
+                        x: 0,
+                        y: 0
                     };
                 },
-                FINISH_PLAYER_TELEPORTING({ state, commit }, { id}) {
+                FINISH_PLAYER_TELEPORTING({ state, commit }, { id }) {
                     let player = state.playersById[id];
                     player.teleporting = false;
                     player.position.x = player.position.x + player.teleportCursor.x;
@@ -263,7 +268,7 @@ export default function () {
                     let randomPlayerId = Object.keys(state.playersById)[0];
                     let player = state.playersById[randomPlayerId];
                     let targetDir = Math.atan2(player.position.y - 400, player.position.x - 400);
-                    for (let directionRad = targetDir - Math.PI /40; directionRad < targetDir + Math.PI /40; directionRad += (Math.PI /10) / shots) {
+                    for (let directionRad = targetDir - Math.PI / 40; directionRad < targetDir + Math.PI / 40; directionRad += (Math.PI / 10) / shots) {
 
                         let bulletId = genId();
                         let newDirectionX = Math.cos(directionRad);
@@ -336,7 +341,8 @@ export default function () {
         store: localStore
     });
     store.commit('ADD_PLAYER', createOwnPlayer());
-    localStore.state.entities.push(Enemy({ store, localStore }));
+    let enemyFactory = EnemyFactory({ localStore, store });
+    enemyFactory.createEnemy();
 
     let canvas = document.createElement('canvas');
     canvas.width = window.innerWidth - 32;
