@@ -296,7 +296,7 @@ export default function () {
                 fireWeapon({ state, commit }, { entity, isEnemy }) {
                     let id = entity.id;
                     let shadowDimension = Math.random() > 0.5;
-                    let shots = 4 + Math.round(Math.random() * 2);
+                    let shots = 15 + Math.round(Math.random() * 2);
                     let randomPlayerId = Object.keys(state.playersById)[0];
                     let player = state.playersById[randomPlayerId];
                     let targetDir = Math.atan2(player.position.y - entity.y, player.position.x - entity.x);
