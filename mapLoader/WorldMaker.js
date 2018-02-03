@@ -2,12 +2,10 @@
 import mapTools from './mapTools.js';
 import loadSprite from './loadSprite.js';
 import rasterizeLayer from './rasterizeLayer.js';
-import worldData from './worldData.js';
 
-export default async function WorldMaker() {
-    let matrix = await mapTools.loadToMatrix('./worldTest.png');
-    console.log(matrix.length);
-    let { spritePaths, colorToTileId, TileGetters } = worldData;
+export default async function WorldMaker(worldData) {
+    let { matrixPath, spritePaths, colorToTileId, TileGetters } = worldData;
+    let matrix = await mapTools.loadToMatrix(matrixPath);
 
     return {
         async make() {
@@ -26,12 +24,10 @@ async function loadSprites(spritePaths) {
     let promises = [];
     for (let name of spriteNames) {
         promises.push((async () => {
-            console.log('loading sprite: ' + name);
             sprites[name] = await loadSprite(spritePaths[name], { tileWidth: 16, tileHeight: 16 });
         })());
     }
     await Promise.all(promises);
-    console.log('loaded sprites', sprites);
     return sprites;
 }
 

@@ -7,6 +7,7 @@
 <body>
 <script type="module">
     import WorldMaker from './WorldMaker.js';
+    import worldData from './worldData.js';
 
     async function run() {
         let mainCanvas = document.createElement('canvas');
@@ -18,7 +19,7 @@
         let mainContext = mainCanvas.getContext('2d');
         mainContext.imageSmoothingEnabled = false;
 
-        let maker = await WorldMaker();
+        let maker = await WorldMaker(worldData);
         let worldCanvas = await maker.make();
         mainContext.drawImage(worldCanvas, 0,0);
     }

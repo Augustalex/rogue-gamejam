@@ -1,10 +1,11 @@
 export default {
+    matrixPath: './worldTest.png',
     spritePaths: {
         'bricks': '../sprites/sprite_Tile_Edge.png'
     },
     colorToTileId: {
         '182,15,15,255': 'brick1',
-        '0,0,0,255': 'tile-cliff-edge'
+        '0,0,0,255': 'brick2'
     },
     TileGetters: (sprites) => ({
         brick() {
