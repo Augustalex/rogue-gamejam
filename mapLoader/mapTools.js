@@ -8,3 +8,6 @@ export default {
         return matrix;
     }
 }
+
+//WorldMapRasterizer
+//WorldMapGenerator

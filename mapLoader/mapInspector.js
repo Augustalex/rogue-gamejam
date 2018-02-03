@@ -1,9 +1,6 @@
 import mapLoader from './mapLoader.js'
 
 export default async function mapInspector(src, tileMap) {
-    tileMap = {
-        '182,15,15,255': 'brick'
-    };
     let imageCanvas = await mapLoader(src);
     let imageContext = imageCanvas.getContext('2d');
     document.body.appendChild(imageCanvas);

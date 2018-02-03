@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Map test</title>
+</head>
+<body>
+<script type="module">
+    import WorldMaker from './WorldMaker.js';
+
+    async function run() {
+        let mainCanvas = document.createElement('canvas');
+        mainCanvas.width = 1984;
+        mainCanvas.height = 1984;
+        mainCanvas.style.width = `${mainCanvas.width}px`;
+        mainCanvas.style.height = `${mainCanvas.height}px`;
+        document.body.appendChild(mainCanvas);
+        let mainContext = mainCanvas.getContext('2d');
+        mainContext.imageSmoothingEnabled = false;
+
+        let maker = await WorldMaker();
+        let worldCanvas = await maker.make();
+        mainContext.drawImage(worldCanvas, 0,0);
+    }
+
+    run();
+</script>
+</body>
+</html>
