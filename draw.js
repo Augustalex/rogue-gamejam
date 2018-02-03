@@ -1,5 +1,5 @@
 var backgroundImage = new Image();
-backgroundImage.src = './sprites/tile_brick.png';
+backgroundImage.src = './sprites/sprite_Tile_Edge.png';
 var vignetteImage = new Image();
 vignetteImage.src = './sprites/vignette.png';
 var towerImage = new Image();
@@ -15,12 +15,15 @@ setInterval(() => {
 
 let vignetteCanvas = null;
 let preRenderSurface = null;
+let tileCanvases = [];
+let backgroundCanvas = null;
+let initial = true;
 
 export default function draw(finalCanvas, finalContext, store, localStore, clientId) {
     if (!preRenderSurface) {
         preRenderSurface = document.createElement('canvas');
         preRenderSurface.width = finalCanvas.width;
-        preRenderSurface.height = finalCanvas.height
+        preRenderSurface.height = finalCanvas.height;
     }
     if (vignetteImage.complete && !vignetteCanvas) {
         vignetteCanvas = document.createElement('canvas');
@@ -33,18 +36,35 @@ export default function draw(finalCanvas, finalContext, store, localStore, clien
     context.clearRect(0, 0, canvas.width, canvas.height);
     let tilesHor = canvas.width / 32;
     let tilesVert = canvas.height / 32;
-
-    //context.mozImageSmoothingEnabled = false;
-    //context.webkitImageSmoothingEnabled = false;
-    //context.msImageSmoothingEnabled = false;
-
     context.imageSmoothingEnabled = false;
     if (backgroundImage.complete) {
-        for (let x = -128; x < 32 * tilesHor; x += 32) {
-            for (let y = -128; y < 32 * tilesVert; y += 32) {
-                context.drawImage(backgroundImage, x, y, 32, 32);
+        if(initial){
+            for (let x = 0; x < 5; x++) {
+                for (let y = 1; y < 5; y++) {
+                    let canvas = document.createElement('canvas');
+                    canvas.width = 32;
+                    canvas.height = 32;
+                    let context = canvas.getContext('2d');
+                    context.imageSmoothingEnabled = false;
+                    context.drawImage(backgroundImage,x*16,y*16, 16,16, 0, 0, 32, 32);
+                    tileCanvases.push(canvas);
+                }
             }
+
+            if(!backgroundCanvas){
+                backgroundCanvas = document.createElement('canvas');
+                backgroundCanvas.width = finalCanvas.width;
+                backgroundCanvas.height = finalCanvas.height;
+                for (let x = -128; x < 32 * tilesHor; x += 32) {
+                    for (let y = -128; y < 32 * tilesVert; y += 32) {
+                        let i = parseInt(Math.random()*20);
+                        backgroundCanvas.getContext('2d').drawImage(tileCanvases[i], x, y, 32, 32);
+                    }
+                }
+            }
+            initial = false;
         }
+        context.drawImage(backgroundCanvas, 0, 0, backgroundCanvas.width, backgroundCanvas.height);
         //context.globalAlpha = 0.5;
         //context.fillStyle = "black";
         //context.fillRect(0, 0, canvas.width, canvas.height);
@@ -74,6 +94,7 @@ export default function draw(finalCanvas, finalContext, store, localStore, clien
     let sy = players[0].position.y - (canvas.height / zoom) / 2;
     //context.FillRect(0, 0, canvas.width, canvas.height);
     finalContext.fillStyle = "black";
+    finalContext.imageSmoothingEnabled = false;
     finalContext.fillRect(0, 0, canvas.width, canvas.height);
     finalContext.drawImage(preRenderSurface, sx, sy, canvas.width / zoom, canvas.height / zoom, 0, 0, canvas.width, canvas.height);
 
