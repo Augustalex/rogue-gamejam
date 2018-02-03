@@ -51,7 +51,6 @@ export default function () {
         store: {
             state: {
                 entitiesById: {},
-                entities: [],
                 localPlayerDead: true,
                 playersById: {},
                 bullets: {},
@@ -100,9 +99,6 @@ export default function () {
                 },
                 ADD_ENTITY({ state }, entity) {
                     state.entitiesById[entity.id] = entity;
-
-                    //TODO remove
-                    state.entities.push(entity);
                 },
                 ADD_BULLET({ state }, bullet) {
                     state.bullets[bullet.id] = bullet

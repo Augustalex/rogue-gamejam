@@ -38,7 +38,7 @@ export default function draw(finalCanvas, finalContext, store, localStore, clien
     let tilesVert = canvas.height / 32;
     context.imageSmoothingEnabled = false;
     if (backgroundImage.complete) {
-        if(initial){
+        if (initial) {
             for (let x = 0; x < 5; x++) {
                 for (let y = 1; y < 5; y++) {
                     let canvas = document.createElement('canvas');
@@ -46,18 +46,18 @@ export default function draw(finalCanvas, finalContext, store, localStore, clien
                     canvas.height = 32;
                     let context = canvas.getContext('2d');
                     context.imageSmoothingEnabled = false;
-                    context.drawImage(backgroundImage,x*16,y*16, 16,16, 0, 0, 32, 32);
+                    context.drawImage(backgroundImage, x * 16, y * 16, 16, 16, 0, 0, 32, 32);
                     tileCanvases.push(canvas);
                 }
             }
 
-            if(!backgroundCanvas){
+            if (!backgroundCanvas) {
                 backgroundCanvas = document.createElement('canvas');
                 backgroundCanvas.width = finalCanvas.width;
                 backgroundCanvas.height = finalCanvas.height;
                 for (let x = -128; x < 32 * tilesHor; x += 32) {
                     for (let y = -128; y < 32 * tilesVert; y += 32) {
-                        let i = parseInt(Math.random()*20);
+                        let i = parseInt(Math.random() * 20);
                         backgroundCanvas.getContext('2d').drawImage(tileCanvases[i], x, y, 32, 32);
                     }
                 }
@@ -83,8 +83,10 @@ export default function draw(finalCanvas, finalContext, store, localStore, clien
         drawBullet(context, bullet, colorByShooterId[bullet.shooterId])
     }
 
-    for (let entity of store.state.entities) {
-        entity.render(context);
+    for (let entityId in store.state.entitiesById) {
+        if (store.state.entitiesById.hasOwnProperty(entityId)) {
+            store.state.entitiesById[entityId].render(context);
+        }
     }
 
     context.globalAlpha = 1;

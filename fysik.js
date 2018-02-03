@@ -22,8 +22,10 @@ export default function fysik(localStore, store, delta) {
         player.fysik(delta)
     }
 
-    for (let entity of store.state.entities) {
-        entity.fysik(delta);
+    for (let entityId in store.state.entitiesById) {
+        if (store.state.entitiesById.hasOwnProperty(entityId)) {
+            store.state.entitiesById[entityId].fysik(delta);
+        }
     }
 
     bulletFysik({ localStore, store }, delta);
