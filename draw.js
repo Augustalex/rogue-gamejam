@@ -1,5 +1,6 @@
 import World from './world.js';
 import Sprites from './sprites.js';
+
 var backgroundImage = new Image();
 backgroundImage.src = './sprites/sprite_Tile_Edge.png';
 var vignetteImage = new Image();
@@ -36,7 +37,7 @@ export default async function draw(finalCanvas, finalContext, store, localStore,
         vignetteCanvas.width = finalCanvas.width;
         vignetteCanvas.height = finalCanvas.height
     }
-    if(first){
+    if (first) {
         first = false;
         heavyBrickLefts = await loadHeavyBricks('Left');
         heavyBrickRights = await loadHeavyBricks('Right');
@@ -74,7 +75,7 @@ export default async function draw(finalCanvas, finalContext, store, localStore,
                         context.drawImage(tileCanvases[i], x, y, 32, 32);
                     }
                 }
-                for(let brick of World.bricks){
+                for (let brick of World.bricks) {
                     context.drawImage(heavyBrickLefts[parseInt(Math.random() * 4)], brick.x, brick.y - 2, 32, 32);
                     context.drawImage(heavyBrickRights[parseInt(Math.random() * 4)], brick.x + 32, brick.y - 2, 32, 32);
                 }
@@ -107,10 +108,10 @@ export default async function draw(finalCanvas, finalContext, store, localStore,
     }
 
     context.globalAlpha = 1;
-    let zoom = 1.5;
+    let zoom = 2;
     //context.drawImage(zoomCanvas, -players[0].x*zoom + canvas.width/2, -players[0].y*zoom + canvas.height/2, canvas.width*zoom, canvas.height*zoom);
-    let sx = players[0].position.x - (canvas.width / zoom) / 2;
-    let sy = players[0].position.y - (canvas.height / zoom) / 2;
+    let sx = Math.round(players[0].position.x - (canvas.width / zoom) / 2);
+    let sy = Math.round(players[0].position.y - (canvas.height / zoom) / 2);
     //context.FillRect(0, 0, canvas.width, canvas.height);
     finalContext.fillStyle = "black";
     finalContext.imageSmoothingEnabled = false;
@@ -149,15 +150,16 @@ export default async function draw(finalCanvas, finalContext, store, localStore,
             aimVector = shooting.direction
         }
         let dir = Math.atan2(aimVector.y, aimVector.x);
-
         if (shadows) {
-            context.fillStyle = 'black';
             context.globalAlpha = 0.5;
-            fillRectRot(x, y + 12, 10, 10, dir);
+            context.fillStyle = 'black';
+            drawCircle(x, y , 10)
             context.filter = "none";
         }
         context.globalAlpha = 1;
-        context.drawImage(Sprites.character, x - 6 , y - 30);
+        let scale = 2;
+        context.imageSmoothingEnabled = false;
+        context.drawImage(Sprites.character, x - Sprites.character.width * scale / 2, y- Sprites.character.height * scale, Sprites.character.width * scale, Sprites.character.height * scale);
     }
 
     function drawBullet(context, bullet, color) {
@@ -192,7 +194,7 @@ export default async function draw(finalCanvas, finalContext, store, localStore,
             fillRectRot(bullet.x, bullet.y, arrowLength, 2, dir);
             context.globalAlpha = 1;
             context.fillStyle = 'white';
-            fillRectRot(bullet.x + Math.cos(dir)*arrowLength/2, bullet.y + Math.sin(dir)*6, 2, 3, dir);
+            fillRectRot(bullet.x + Math.cos(dir) * arrowLength / 2, bullet.y + Math.sin(dir) * 6, 2, 3, dir);
             context.fillStyle = 'red';
             //fillRectRot(bullet.x + Math.cos(dir + Math.PI)*arrowLength/2, bullet.y + Math.sin(dir + Math.PI)*arrowLength/2, 2, 3, dir);
         }
@@ -205,20 +207,25 @@ export default async function draw(finalCanvas, finalContext, store, localStore,
         context.fillRect(-width / 2, -height / 2, width, height);
         context.restore()
     }
+
+    function drawCircle(x, y,radius) {
+        context.arc(x, y, radius, 0, 2 * Math.PI);
+        context.fill();
+    }
 }
 
-function loadHeavyBricks(side){
+function loadHeavyBricks(side) {
     let promises = [];
-    for(let i = 1; i < 5; i++){
+    for (let i = 1; i < 5; i++) {
         promises.push(loadImageAsync(`./sprites/heavy/sprite_Tile_HeavyBrick${side}00${i}.png`));
     }
     return Promise.all(promises);
 }
 
-function loadImageAsync(path){
+function loadImageAsync(path) {
     var image = new Image();
     image.src = path;
-    return new Promise(function (resolve){
+    return new Promise(function (resolve) {
         image.addEventListener('load', () => {
             resolve(image);
         });
