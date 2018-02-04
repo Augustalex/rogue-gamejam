@@ -1,5 +1,5 @@
 export default {
-    matrixPath: './mapLoader/worldTest02.bmp',
+    matrixPath: './mapLoader/worldTest03.bmp',
     spritePaths: {
         'grass': './sprites/tile_Grass.png',
         'bricks': './sprites/sprite_Tile_Edge.png',

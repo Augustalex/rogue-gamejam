@@ -1,14 +1,11 @@
 export default function (canvas, availableColors) {
     let output = [];
     let context = canvas.getContext('2d');
-    for (let x = 0; x < canvas.width; x++) {
+    for (let y = 0; y < canvas.height; y++) {
         let row = [];
-        for (let y = 0; y < canvas.height; y++) {
+        for (let x = 0; x < canvas.width; x++) {
             let color = context.getImageData(x, y, 1, 1).data;
             let [r, g, b] = closestColor(color, availableColors);
-            if (r !== color[0] || g !== color[1] || b !== color[2]) {
-                // console.log('OMG!', color, [r, g, b], availableColors.some(color => !(r !== color[0] || g !== color[1] || b !== color[2])));
-            }
             row.push(`${r},${g},${b}`);
         }
         output.push(row);

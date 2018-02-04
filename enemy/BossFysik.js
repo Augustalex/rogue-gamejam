@@ -14,10 +14,10 @@ export default function (storeDependencies, entityState) {
 
     let step = 0;
     let pattern = [
-        { x: 200, y: 200 },
-        { x: 200, y: 800 },
-        { x: 800, y: 800 },
-        { x: 800, y: 200 }
+        { x: 1650, y: 1000 },
+        { x: 1450, y: 1000 },
+        { x: 1650, y: 800 },
+        { x: 1450, y: 1000 }
     ];
     const getNextTargetLocation = () => {
         if (step === pattern.length) {
@@ -50,10 +50,22 @@ export default function (storeDependencies, entityState) {
 
     return (delta) => {
         if (!inPosition) {
-            //store.commit('SET_ENTITY_POS', { id: entityState.id, ...getNextTargetLocation() });
             move();
             inPosition = true;
         }
+
+        let playerInRange = false;
+        for (let playerId in store.state.playersById) {
+            if (!store.state.playersById.hasOwnProperty(playerId)) continue;
+
+            let player = store.state.playersById[playerId];
+            let dist = Math.sqrt(Math.pow(player.position.x - entityState.position.x, 2) + Math.pow(player.position.y - entityState.position.y, 2));
+            if (dist < 800) {
+                playerInRange = true;
+            }
+        }
+
+        if (!playerInRange) return;
 
         lastWalkedTime += delta;
         if (entityState.controllerId === localStore.state.clientId) {

@@ -18,6 +18,13 @@ export default function WorldMaker(worldData) {
             let layer = await createLayer(colorToTileId, tileGetters, matrix);
             let layerCanvas = rasterizeLayer(layer);
             return layerCanvas;
+        },
+        async makeLayer() {
+            let matrix = await mapTools.loadToMatrix(matrixPath, availableColors);
+            let sprites = await loadSprites(spritePaths);
+            let tileGetters = TileGetters(sprites);
+            let layer = await createLayer(colorToTileId, tileGetters, matrix);
+            return layer;
         }
     };
 }

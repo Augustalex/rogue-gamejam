@@ -6,11 +6,11 @@ export default async function (src, { tileWidth, tileHeight }) {
     for (let y = 0; y < image.height; y += tileHeight) {
         for (let x = 0; x < image.width; x += tileWidth) {
             let tile = document.createElement('canvas');
-            tile.width = tileWidth * 2;
-            tile.height = tileHeight * 2;
+            tile.width = tileWidth;
+            tile.height = tileHeight;
             let context = tile.getContext('2d');
             context.imageSmoothingEnabled = false;
-            context.drawImage(image, x, y, tileWidth, tileHeight, 0, 0, tileWidth * 2, tileHeight * 2);
+            context.drawImage(image, x, y, tileWidth, tileHeight, 0, 0, tileWidth, tileHeight);
             tiles.push(tile);
         }
     }

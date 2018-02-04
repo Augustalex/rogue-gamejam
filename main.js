@@ -24,7 +24,7 @@ export default function () {
     console.log('clientId: ', clientId);
 
     let audioEngine = AudioEngine();
-    // audioEngine.play('background-0', { volume: .2 });
+    audioEngine.play('background-0', { volume: .2 });
     audioEngine.play('wind', { volume: .4 });
 
     const createOwnPlayer = () => {
@@ -332,10 +332,10 @@ export default function () {
     });
     store.commit('ADD_PLAYER', createOwnPlayer());
     let enemyFactory = EnemyFactory({ localStore, store }, { controllerId: clientId });
-    // enemyFactory.createBoss({
-    //     x: World.boss.x,
-    //     y: World.boss.y,
-    // });
+    enemyFactory.createBoss({
+        x: World.boss.x,
+        y: World.boss.y,
+    });
 
     let canvas = document.createElement('canvas');
     canvas.width = window.innerWidth - 32;

@@ -9,7 +9,6 @@ export default async function mapInspector(src, tileMap) {
     outputContext.imageSmoothingEnabled = false;
 
     let imageCanvas = await mapLoader(src);
-    let imageContext = imageCanvas.getContext('2d');
 
     outputContext.drawImage(imageCanvas, 0, 0, imageCanvas.width, imageCanvas.height, 0, 0, imageCanvas.width * 16, imageCanvas.height * 16);
 
@@ -18,7 +17,7 @@ export default async function mapInspector(src, tileMap) {
         let { pageX, pageY } = e;
         let x = pageX - output.offsetLeft;
         let y = pageY - output.offsetTop;
-        let data = imageContext.getImageData(x, y, 1, 1);
+        let data = outputContext.getImageData(x, y, 1, 1);
         lastData = data.data;
     });
     document.addEventListener('keydown', e => {
