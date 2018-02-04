@@ -40,7 +40,7 @@ function Boss(storeDependencies, state) {
                 towerImage.src = './sprites/tower.png';
             });
         },
-        setEntityHealth(health){
+        setEntityHealth(health) {
             state.health = health;
         },
         render({ context, canvas, camera }) {
@@ -82,7 +82,7 @@ function Boss(storeDependencies, state) {
         fysik(delta) {
             bossFysik(delta);
         },
-        getState(){
+        getState() {
             return {
                 health: state.health
             }
@@ -94,22 +94,23 @@ function Boss(storeDependencies, state) {
         context.fillStyle = 'white';
         context.globalAlpha = 0.15;
         let height = 20;
-        context.fillRect(camera.x + inset, camera.y + camera.h-inset/2-height, canvas.width - inset * 2, height);
+        context.fillRect(camera.x + inset, camera.y + camera.h - inset / 2 - height, canvas.width - inset * 2, height);
         context.globalAlpha = 0.8;
         let multiPlyer = state.health / state.maxHealth;
-        context.fillRect(camera.x + inset, camera.y + camera.h-inset/2-height, (canvas.width - inset * 2)* multiPlyer, height);
+        context.fillRect(camera.x + inset, camera.y + camera.h - inset / 2 - height, (canvas.width - inset * 2) * multiPlyer, height);
     }
+
     function drawTitle(context, canvas, camera, state) {
         context.fillStyle = 'white';
         context.textAlign = 'center';
         context.font = '22px sans serif';
         let w = 80;
         context.globalAlpha = 0.4;
-        context.fillRect(camera.x + camera.w/2 - w, camera.y + 20, w *2, 2);
+        context.fillRect(camera.x + camera.w / 2 - w, camera.y + 20, w * 2, 2);
         context.globalAlpha = 0.3;
-        context.fillRect(camera.x + camera.w/2 - w, camera.y + 80, w *2, 2);
+        context.fillRect(camera.x + camera.w / 2 - w, camera.y + 80, w * 2, 2);
         context.globalAlpha = 1;
-        context.fillText('Jättegammel sten monster', camera.x + camera.w/2, camera.y + 60);
+        context.fillText('Jättegammel sten monster', camera.x + camera.w / 2, camera.y + 60);
     }
 };
 Boss.createState = function ({ controllerId, x, y }) {

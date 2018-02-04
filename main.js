@@ -42,7 +42,7 @@ export default async function () {
                 y: World.playerSpawn.y,
             },
             color,
-            speed: 116,
+            speed: 220,
             shooting: {
                 direction: {
                     x: 0,
