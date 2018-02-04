@@ -8,7 +8,7 @@ const { genId, rand255, rHue, rColor } = utils;
 function Boss(storeDependencies, state) {
     let { store, localStore } = storeDependencies;
 
-    state.speed = 10;
+    state.speed = 20;
 
     let {
         id,
@@ -54,9 +54,11 @@ function Boss(storeDependencies, state) {
             }
             if (Sprites.boss.complete) {
                 let scale = 2;
-                state.currentFrame += 0.5;
-                if (state.currentFrame > 23.5) {
-                    state.currentFrame = 0;
+                if (state.isMoving ) {
+                    state.currentFrame += 0.5;
+                    if (state.currentFrame > 23.5) {
+                        state.currentFrame = 0;
+                    }
                 }
                 let frame = Math.floor(state.currentFrame);
                 let sprite = Sprites.bossPast;
@@ -89,6 +91,7 @@ Boss.createState = function ({ controllerId, x, y }) {
             x: 0,
             y: 0
         },
+        isMoving: true,
         currentFrame: 0,
         speed: 100,
         controllerId
@@ -96,8 +99,15 @@ Boss.createState = function ({ controllerId, x, y }) {
 };
 export default Boss;
 
+let sat = 50;
+
 function drawBullet(context, bullet, color) {
-    if (bullet.isEnemy) {
+    if (bullet.isLaser) {
+        let dir = Math.atan2(bullet.direction.y, bullet.direction.x);
+        context.fillStyle = `hsl(${bullet.hue},${sat}%,80%)`;
+        fillRectRot(context, bullet.x, bullet.y, 32, 16, dir);
+    }
+    else {
         if (options.useShadows) {
             context.beginPath();
             context.arc(Math.floor(bullet.x), Math.floor(bullet.y + bullet.height / 1.1 + 1), 8 + bullet.height / 4, 0, 2 * Math.PI, false);

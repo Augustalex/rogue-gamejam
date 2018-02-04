@@ -111,7 +111,9 @@ export default async function draw(finalCanvas, finalContext, store, localStore,
         applyDarkScreenEffect(finalCanvas, finalContext)
     }
     else {
-        applyBloom(finalContext);
+        if (!store.state.presentDimension) {
+            applyBloom(finalContext, finalCanvas);
+        }
     }
 
     var t1 = performance.now();
@@ -227,14 +229,14 @@ function applyDarkScreenEffect(finalCanvas, finalContext) {
     finalContext.globalCompositeOperation = "source-over";
 }
 
-function applyBloom(finalContext) {
+function applyBloom(finalContext, finalCanvas) {
     finalContext.filter = "brightness(" + 1.0 + ") blur(" + 8 + "px)";
     finalContext.globalCompositeOperation = "lighten";
-    finalContext.globalAlpha = 0.6;
-    // finalContext.drawImage(, 0, 0);
-    finalContext.globalAlpha = 1;
+    finalContext.globalAlpha = 0.5;
+    finalContext.drawImage(finalCanvas, 0, 0);
     finalContext.filter = "none";
     finalContext.globalCompositeOperation = "source-over";
+    finalContext.globalAlpha = 1;
 }
 
 function applyVignette(store, clientId, finalCanvas, finalContext) {

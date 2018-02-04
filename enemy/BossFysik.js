@@ -6,7 +6,7 @@ export default function (storeDependencies, entityState) {
 
     let inPosition = false;
 
-    let lastWalkedTime = 0;
+    let timeSinceLastAction = 0;
     let lastPosition = {
         x: entityState.position.x,
         y: entityState.position.y
@@ -14,10 +14,10 @@ export default function (storeDependencies, entityState) {
 
     let step = 0;
     let pattern = [
-        { x: 1650, y: 1000 },
+        { x: 1650, y: 2000 },
         { x: 1450, y: 1000 },
-        { x: 1650, y: 800 },
-        { x: 1450, y: 1000 }
+        { x: 1800, y: 1500 },
+        { x: 800, y: 200 }
     ];
     const getNextTargetLocation = () => {
         if (step === pattern.length) {
@@ -27,8 +27,6 @@ export default function (storeDependencies, entityState) {
     };
 
     const move = () => {
-        lastWalkedTime = 0;
-
         let target = getNextTargetLocation();
         let entityPos = entityState.position;
         let targetDir = Math.atan2(target.y - entityPos.y, target.x - entityPos.x);
@@ -67,22 +65,45 @@ export default function (storeDependencies, entityState) {
 
         if (!playerInRange) return;
 
-        lastWalkedTime += delta;
+        timeSinceLastAction += delta;
         if (entityState.controllerId === localStore.state.clientId) {
-            if (lastWalkedTime > 30) {
-                move();
+            if(timeSinceLastAction > 2 ){
+                if (!entityState.isMoving) {
+                    entityState.isMoving = true;
+                    move();
+                    timeSinceLastAction = 0;
+                }
+                else {
+                    entityState.moving.x = 0;
+                    entityState.moving.y = 0;
+                    entityState.isMoving = false;
+                    timeSinceLastAction = 0;
+                }
             }
         }
 
-        lastTime += delta;
-        if (lastTime > enemyTimeToShoot) {
-            localStore.dispatch('fireEnemyWeapon', {
-                id: entityState.id,
-                isEnemy: true,
-                x: entityState.position.x,
-                y: entityState.position.y - 80
-            });
-            lastTime -= enemyTimeToShoot
+        if (!entityState.isMoving) {
+            lastTime += delta;
+            if (lastTime > enemyTimeToShoot) {
+                if (store.state.presentDimension) {
+                    localStore.dispatch('fireEnemyWeapon', {
+                        id: entityState.id,
+                        isEnemy: true,
+                        x: entityState.position.x,
+                        y: entityState.position.y - 80
+                    });
+                }
+                else {
+                    localStore.dispatch('fireLaser', {
+                        id: entityState.id,
+                        x: entityState.position.x,
+                        y: entityState.position.y - 80
+                    });
+                }
+                lastTime = 0;
+                move();
+                entityState.isMoving = true;
+            }
         }
 
         let x = entityState.position.x;

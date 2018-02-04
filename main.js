@@ -14,6 +14,8 @@ import Boss from './enemy/Boss.js';
 import EnemyFactory from './enemy/EnemyFactory.js';
 
 const { genId, rand255, rHue, rColor } = utils;
+let beamHue = 329;
+let hueDir = 1;
 
 export default function () {
     let socket = io.connect(`${window.location.hostname}:3032`);
@@ -62,7 +64,7 @@ export default function () {
                 bulletsByShooterId: {},
                 removeRequests: [],
                 blood: null,
-                presentDimension: false
+                presentDimension: true
             },
             getters: {},
             mutations: {
@@ -321,6 +323,52 @@ export default function () {
                     let enemy = Boss({ store, localStore }, enemyState);
                     commit('ADD_ENTITY', enemy);
                     enemy.loadSprite();
+                },
+                fireLaser({ state, commit }, { id: entityId, x, y }) {
+                    let id = entityId;
+                    let entity = state.entitiesById[entityId];
+                    let randomPlayerId = Object.keys(state.playersById)[0];
+                    let player = state.playersById[randomPlayerId];
+                    let entityPos = entity.getPosition();
+                    let targetDir = Math.atan2(player.position.y - entityPos.y, player.position.x - entityPos.x);
+                    for (let speed = 0.8; speed < 1.8; speed += 0.025) {
+                        beamHue+=hueDir*3;
+                        if(beamHue > 340){
+                            beamHue = 340;
+                            hueDir=-hueDir
+                        }
+                        if(beamHue < 200){
+                            beamHue = 200;
+                            hueDir=-hueDir
+                        }
+                        let bulletId = genId();
+                        let directionX = Math.cos(targetDir);
+                        let directionY = Math.sin(targetDir);
+
+                        let bullet = {
+                            x: x,
+                            y: y,
+                            id: bulletId,
+                            shooterId: null,
+                            direction: {
+                                x: directionX * speed/5,
+                                y: directionY * speed/5
+                            },
+                            isEnemy: true,
+                            isLaser: true,
+                            height: 22,
+                            hue: beamHue,
+                            shadowDimension: true
+                        };
+                        commit('ADD_ENTITY_BULLET', { id, bullet });
+
+                        setTimeout(() => {
+                            if (!state.bullets[bulletId]) return;
+                            let { x, y } = state.bullets[bulletId];
+                            commit('REMOVE_ENTITY_BULLET', { shooterId: id, bulletId });
+                            commit('ADD_BURN', { x, y })
+                        }, Math.round(Math.random() * 200) + 5000);
+                    }
                 }
             }
         }

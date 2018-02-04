@@ -271,7 +271,12 @@ function bulletFysik({ store, localStore }, delta) {
         for (let bulletId in store.state.bulletsByShooterId[shooterId]) {
             if (!store.state.bulletsByShooterId[shooterId].hasOwnProperty(bulletId)) continue;
             let bullet = store.state.bulletsByShooterId[shooterId][bulletId];
-
+            if (bullet.isLaser) {
+                if(bullet.direction.x < 3){
+                    bullet.direction.x *= 1.1;
+                    bullet.direction.y *= 1.1;
+                }
+            }
             let newPos = {
                 x: bullet.x + bullet.direction.x * constants.bulletSpeed * delta,
                 y: bullet.y + bullet.direction.y * constants.bulletSpeed * delta
