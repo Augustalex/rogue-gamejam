@@ -2,12 +2,12 @@ export default {
     width: 5056,
     height: 10528,
     playerSpawn: {
-        x: 1200,
-        y: 6200
+        x: 4300,
+        y: 1050
     },
     boss: {
-        x: 2300,
-        y: 1200
+        x: 4300,
+        y: 1050
     },
     bricks: [
         { x: 32, y: 32 * 10 },

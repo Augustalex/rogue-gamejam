@@ -56,6 +56,7 @@ export default async function () {
                 y: 0
             },
             hasTripleBow: false,
+            hasLaser: false,
             health: 100
         }
     };
@@ -513,13 +514,9 @@ export default async function () {
                     id: entityId,
                     x,
                     y,
-                    targetX,
-                    targetY
+                    targetDir,
                 }) {
                     let id = entityId;
-                    let entity = state.entitiesById[entityId];
-                    let entityPos = entity.getPosition();
-                    let targetDir = Math.atan2(targetY - entityPos.y, targetX - entityPos.x);
                     for (let speed = 0.8; speed < 1.8; speed += 0.025) {
                         beamHue += hueDir * 3;
                         if (beamHue > 340) {
@@ -559,6 +556,53 @@ export default async function () {
                         }, Math.round(Math.random() * 200) + 5000);
                     }
                 },
+                firePlayerLaser({ state, commit }, {
+                    id: entityId,
+                    x,
+                    y,
+                    targetDir,
+                }) {
+                    let id = entityId;
+                    for (let speed = 1; speed < 1.8; speed += 0.05) {
+                        beamHue += hueDir * 0.5;
+                        if (beamHue > 360) {
+                            beamHue = 0;
+                            hueDir = -hueDir
+                        }
+                        if (beamHue < 0) {
+                            beamHue = 0;
+                            hueDir = -hueDir
+                        }
+                        let bulletId = genId();
+                        let directionX = Math.cos(targetDir);
+                        let directionY = Math.sin(targetDir);
+
+                        let bullet = {
+                            x: x,
+                            y: y,
+                            id: bulletId,
+                            shooterId: null,
+                            direction: {
+                                x: directionX * speed,
+                                y: directionY * speed
+                            },
+                            isEnemy: true,
+                            isLaser: true,
+                            height: 22,
+                            hue: beamHue,
+                            presentDimension: false
+                        };
+                        console.log(id);
+                        commit('ADD_BULLET', bullet);
+
+                        setTimeout(() => {
+                            if (!state.bullets[bulletId]) return;
+                            let { x, y } = state.bullets[bulletId];
+                            commit('REMOVE_BULLET', bulletId );
+                            commit('ADD_BURN', { x, y })
+                        }, Math.round(Math.random() * 200) + 5000);
+                    }
+                },
                 async bossFightSound() {
                     if (!audioEngine.getSongsPlaying().includes('bossFight-0')) {
                         await audioEngine.play('bossFight-0', { type: 'background' });
@@ -581,10 +625,10 @@ export default async function () {
     });
     store.commit('ADD_PLAYER', createOwnPlayer());
     let enemyFactory = EnemyFactory({ localStore, store }, { controllerId: clientId });
-    // enemyFactory.createBoss({
-    //     x: World.boss.x,
-    //     y: World.boss.y,
-    // });
+    enemyFactory.createBoss({
+        x: World.boss.x,
+        y: World.boss.y,
+    });
     // enemyFactory.createFriend({
     //     x: 2300,
     //     y: 8000,

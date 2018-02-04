@@ -105,12 +105,21 @@ function Player({ localStore, store, playerId }) {
     let timeToNextSound = 0;
 
     function shoot(player) {
+        let bulletDir = Math.atan2(player.shooting.direction.y, player.shooting.direction.x);
+        if (state.hasLaser) {
+            localStore.dispatch('firePlayerLaser', {
+                id: playerId,
+                x: player.position.x,
+                y: player.position.y - 32,
+                targetDir: bulletDir
+            });
+            return;
+        }
         localStore.dispatch('firePlayerWeapon', {
             id: playerId,
             direction: player.shooting.direction,
         });
         if (state.hasTripleBow) {
-            let bulletDir = Math.atan2(player.shooting.direction.y, player.shooting.direction.x);
             localStore.dispatch('firePlayerWeapon', {
                 id: playerId,
                 direction: {
@@ -222,6 +231,9 @@ function Player({ localStore, store, playerId }) {
                     shoot(player);
                 }
                 let newTimeToShoot = player.shooting.timeToShoot - delta;
+                if (player.hasLaser) {
+                    newTimeToShoot = 0;
+                }
                 if (newTimeToShoot <= 0) {
                     let overFlow = -newTimeToShoot;
                     newTimeToShoot = constants.timeToShoot - overFlow;

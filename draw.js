@@ -161,7 +161,12 @@ function drawPlayer(context, { position: { x, y }, color, moving, shooting, tele
 }
 
 function drawBullet(context, bullet, color) {
-    if (bullet.isEnemy) {
+    if(bullet.isLaser){
+        let dir = Math.atan2(bullet.direction.y, bullet.direction.x);
+        context.fillStyle = `hsl(${bullet.hue},${80}%,80%)`;
+        fillRectRot(context, bullet.x, bullet.y, 64, 64, dir);
+    }
+    else if (bullet.isEnemy) {
         if (shadows) {
             context.beginPath();
             context.arc(Math.floor(bullet.x), Math.floor(bullet.y + bullet.height / 1.1 + 1), 8 + bullet.height / 4, 0, 2 * Math.PI, false);

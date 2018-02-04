@@ -14,7 +14,7 @@ export default function (storeDependencies, entityState) {
         x: entityState.position.x,
         y: entityState.position.y
     };
-    let targetPlayerPosition;
+    let targetPlayerDir;
 
     let step = 0;
     let pattern = [
@@ -87,7 +87,8 @@ export default function (storeDependencies, entityState) {
                     entityState.isMoving = false;
                     timeSinceLastAction = 0;
                     let randomPlayerId = Object.keys(store.state.playersById)[0];
-                    targetPlayerPosition = store.state.playersById[randomPlayerId].position;
+                    let targetPlayerPosition = store.state.playersById[randomPlayerId].position;
+                    targetPlayerDir = Math.atan2((targetPlayerPosition.y+32) - entityState.position.y, targetPlayerPosition.x - entityState.position.x);
                 }
             }
         }
@@ -132,16 +133,20 @@ export default function (storeDependencies, entityState) {
                             id: entityState.id,
                             x: entityState.position.x,
                             y: entityState.position.y - 80,
-                            targetX: targetPlayerPosition.x + 30 + Math.random() *100,
-                            targetY: targetPlayerPosition.y + 48 + Math.random() *100
+                            targetDir: targetPlayerDir + Math.PI/8 + Math.random() *Math.PI/4,
+                        });
+                        localStore.dispatch('fireLaser', {
+                            id: entityState.id,
+                            x: entityState.position.x,
+                            y: entityState.position.y - 80,
+                            targetDir: targetPlayerDir -( Math.PI/8 + Math.random() *Math.PI/4),
                         });
                     }
                     localStore.dispatch('fireLaser', {
                         id: entityState.id,
                         x: entityState.position.x,
                         y: entityState.position.y - 80,
-                        targetX: targetPlayerPosition.x,
-                        targetY: targetPlayerPosition.y + 32
+                        targetDir: targetPlayerDir
                     });
                 }
                 lastTime = 0;
