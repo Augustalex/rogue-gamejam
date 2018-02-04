@@ -48,38 +48,44 @@ export default function fysik(localStore, store, delta) {
             }
         }
 
-        let collidableObjects = Object.keys(playerObjectsById).map(k => playerObjectsById[k]);
-        for (let collidable of collidableObjects) {
-            if (collidable.id === bullet.shooterId) continue;
+        for (let entityId in store.state.entitiesById) {
+            if (!store.state.entitiesById.hasOwnProperty(entityId)) return;
+            if (entityId === bullet.shooterId) continue;
+            let boss = store.state.entitiesById[entityId];
+            let x = boss.getPosition().x;
+            let y = boss.getPosition().y;
 
-            let playerPosition = collidable.currentPosition;
-
-            let playerWidth = collidable.width;
-            let playerHeight = collidable.height;
-            if (bullet.isEnemy) {
-                // hack to collide with bigger bullets
-                playerWidth = playerWidth * 2;
-                playerHeight = playerHeight * 2
-            }
-            let playerTopLeft = {
-                x: playerPosition.x - (playerWidth / 2),
-                y: playerPosition.y - (playerHeight / 2)
+            let bulletLength = 8;
+            let startPos = {
+                x: bullet.x - bullet.direction.x * bulletLength * 2,
+                y: bullet.y - bullet.direction.y * bulletLength * 2
             };
-            let playerLines = [
-                [playerTopLeft.x, playerTopLeft.y, playerTopLeft.x + playerWidth, playerTopLeft.y],
-                [playerTopLeft.x + playerWidth, playerTopLeft.y, playerTopLeft.x + playerWidth, playerTopLeft.y + playerHeight],
-                [playerTopLeft.x + playerWidth, playerTopLeft.y + playerHeight, playerTopLeft.x, playerTopLeft.y + playerHeight],
-                [playerTopLeft.x, playerTopLeft.y + playerHeight, playerTopLeft.x, playerTopLeft.y],
+            let endPos = {
+                x: newPos.x + bullet.direction.x * bulletLength * 2,
+                y: newPos.y + bullet.direction.y * bulletLength * 2
+            };
+            let b = getBossBoundingBox();
+            let leftLine = [x + b.left, y + b.top, x + b.left, y + b.bottom];
+            let rightLine = [x + b.right, y + b.top, x + b.right, y + b.bottom];
+            let topLine = [x + b.left, y + b.top, x + b.right, y + b.top];
+            let bottomLine = [x + b.left, y + b.bottom, x + b.right, y + b.bottom];
+
+            let boxLines = [
+                leftLine,
+                rightLine,
+                topLine,
+                bottomLine
             ];
 
-            let intersects = playerLines.some(line => {
-                return intersect(line[0], line[1], line[2], line[3], bullet.x, bullet.y, newPos.x, newPos.y)
+            let intersects = boxLines.some(line => {
+                return intersect(line[0], line[1], line[2], line[3], startPos.x, startPos.y, endPos.x, endPos.y)
             });
             if (intersects) {
+                let damage = store.state.presentDimension ? 80 : 160;
                 localStore.commit('REMOVE_BULLET', bulletId);
-                store.dispatch('playerShot', {
-                    id: collidable.id,
-                    damage: 80
+                store.dispatch('entityShot', {
+                    id: entityId,
+                    damage: damage
                 })
             }
         }
@@ -272,7 +278,7 @@ function bulletFysik({ store, localStore }, delta) {
             if (!store.state.bulletsByShooterId[shooterId].hasOwnProperty(bulletId)) continue;
             let bullet = store.state.bulletsByShooterId[shooterId][bulletId];
             if (bullet.isLaser) {
-                if(bullet.direction.x < 3){
+                if (bullet.direction.x < 3) {
                     bullet.direction.x *= 1.1;
                     bullet.direction.y *= 1.1;
                 }
@@ -335,12 +341,19 @@ function bulletFysik({ store, localStore }, delta) {
                         intersect(line[0], line[1], line[2], line[3], bulletBottomLine[0], bulletBottomLine[1], bulletBottomLine[2], bulletBottomLine[3])
                 });
                 if (intersects) {
-                    console.log(1);
-                    localStore.commit('REMOVE_ENTITY_BULLET', { shooterId, bulletId });
-                    store.dispatch('playerShot', {
-                        id: collidable.id,
-                        damage: 5
-                    })
+                    if(bullet.isLaser){
+                        store.dispatch('playerShot', {
+                            id: collidable.id,
+                            damage: 0.2
+                        })
+                    }
+                    else{
+                        localStore.commit('REMOVE_ENTITY_BULLET', { shooterId, bulletId });
+                        store.dispatch('playerShot', {
+                            id: collidable.id,
+                            damage: 5
+                        })
+                    }
                 }
             }
 

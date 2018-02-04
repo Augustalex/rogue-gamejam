@@ -1,4 +1,3 @@
-import World from './world.js';
 import Sprites from './sprites.js';
 import worldData from './mapLoader/worldData2.js';
 import WorldMaker from './mapLoader/WorldMaker.js';
@@ -27,7 +26,6 @@ let worldMaker = WorldMaker(worldData);
 let worldLayer = null;
 
 export default async function draw(finalCanvas, finalContext, store, localStore, clientId) {
-    var t0 = performance.now();
     if (first) {
         first = false;
         heavyBrickLefts = await loadHeavyBricks('Left');
@@ -74,14 +72,14 @@ export default async function draw(finalCanvas, finalContext, store, localStore,
 
     for (let entityId in store.state.entitiesById) {
         if (store.state.entitiesById.hasOwnProperty(entityId)) {
-            store.state.entitiesById[entityId].render(context, camera);
+            store.state.entitiesById[entityId].render({context, canvas: preRenderSurface, camera});
         }
     }
 
     // context.globalAlpha = 1;
 
     //Final draw to the visible canvas (the camera)
-    finalContext.fillStyle = "black";
+    finalContext.fillStyle = "#2C2E33";
     finalContext.imageSmoothingEnabled = false;
     finalContext.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
 
@@ -97,7 +95,7 @@ export default async function draw(finalCanvas, finalContext, store, localStore,
                 || tileY > camera.y + camera.h || tileY + tileHeight < camera.y) {
                 continue;
             }
-            finalContext.drawImage(tile, (tileX) - camera.x, (y * tileHeight) - camera.y, tileWidth, tileHeight);
+            finalContext.drawImage(tile, (tileX) - camera.x, tileY - camera.y, tileWidth, tileHeight);
         }
     }
 
@@ -115,9 +113,6 @@ export default async function draw(finalCanvas, finalContext, store, localStore,
             applyBloom(finalContext, finalCanvas);
         }
     }
-
-    var t1 = performance.now();
-    console.log("Call to Draw.js took " + (t1 - t0) + " milliseconds.")
 }
 
 function drawPlayer(context, { position: { x, y }, color, moving, shooting, teleporting, teleportCursor, id }, camera) {
@@ -134,10 +129,6 @@ function drawPlayer(context, { position: { x, y }, color, moving, shooting, tele
         context.stroke();
     }
     context.fillStyle = color;
-    let aimVector = moving;
-    if (shooting.direction.x || shooting.direction.y) {
-        aimVector = shooting.direction
-    }
     // let dir = Math.atan2(aimVector.y, aimVector.x);
     if (shadows) {
         // context.globalAlpha = 0.5;

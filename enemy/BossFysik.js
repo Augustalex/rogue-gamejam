@@ -11,6 +11,7 @@ export default function (storeDependencies, entityState) {
         x: entityState.position.x,
         y: entityState.position.y
     };
+    let targetPlayerPosition;
 
     let step = 0;
     let pattern = [
@@ -62,6 +63,7 @@ export default function (storeDependencies, entityState) {
                 playerInRange = true;
             }
         }
+        entityState.playerInRange = playerInRange;
 
         if (!playerInRange) return;
 
@@ -78,6 +80,8 @@ export default function (storeDependencies, entityState) {
                     entityState.moving.y = 0;
                     entityState.isMoving = false;
                     timeSinceLastAction = 0;
+                    let randomPlayerId = Object.keys(store.state.playersById)[0];
+                    targetPlayerPosition = store.state.playersById[randomPlayerId].position;
                 }
             }
         }
@@ -97,7 +101,9 @@ export default function (storeDependencies, entityState) {
                     localStore.dispatch('fireLaser', {
                         id: entityState.id,
                         x: entityState.position.x,
-                        y: entityState.position.y - 80
+                        y: entityState.position.y - 80,
+                        targetX: targetPlayerPosition.x,
+                        targetY: targetPlayerPosition.y
                     });
                 }
                 lastTime = 0;

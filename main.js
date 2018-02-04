@@ -98,6 +98,11 @@ export default function () {
                         state.playersById[id].health = health
                     }
                 },
+                SET_ENTITY_HEALTH({ state }, { id, health }) {
+                    if (state.entitiesById[id]) {
+                        state.entitiesById[id].health = health;
+                    }
+                },
                 ADD_PLAYER({ state }, player) {
                     state.playersById[player.id] = player;
                     if (player.id === clientId) {
@@ -243,6 +248,21 @@ export default function () {
                         }
                     }
                 },
+                entityShot({ state, dispatch, commit }, { id, damage }) {
+                    if (state.entitiesById[id]) {
+                        let { x, y } = state.entitiesById[id];
+                        let health = state.entitiesById[id].getState().health;
+                        console.log(health);
+                        let newHealth = health - damage;
+                        if (newHealth <= 0) {
+                            dispatch('killEntity', id)
+                        }
+                        else {
+                            commit('ADD_BLOOD', { x, y });
+                            state.entitiesById[id].setEntityHealth(newHealth);
+                        }
+                    }
+                },
                 firePlayerWeapon({ state, commit }, { id, direction }) {
                     let player = state.playersById[id];
                     let bulletId = genId();
@@ -324,22 +344,26 @@ export default function () {
                     commit('ADD_ENTITY', enemy);
                     enemy.loadSprite();
                 },
-                fireLaser({ state, commit }, { id: entityId, x, y }) {
+                fireLaser({ state, commit }, {
+                    id: entityId,
+                    x,
+                    y,
+                    targetX,
+                    targetY
+                }) {
                     let id = entityId;
                     let entity = state.entitiesById[entityId];
-                    let randomPlayerId = Object.keys(state.playersById)[0];
-                    let player = state.playersById[randomPlayerId];
                     let entityPos = entity.getPosition();
-                    let targetDir = Math.atan2(player.position.y - entityPos.y, player.position.x - entityPos.x);
+                    let targetDir = Math.atan2(targetY - entityPos.y, targetX - entityPos.x);
                     for (let speed = 0.8; speed < 1.8; speed += 0.025) {
-                        beamHue+=hueDir*3;
-                        if(beamHue > 340){
+                        beamHue += hueDir * 3;
+                        if (beamHue > 340) {
                             beamHue = 340;
-                            hueDir=-hueDir
+                            hueDir = -hueDir
                         }
-                        if(beamHue < 200){
+                        if (beamHue < 200) {
                             beamHue = 200;
-                            hueDir=-hueDir
+                            hueDir = -hueDir
                         }
                         let bulletId = genId();
                         let directionX = Math.cos(targetDir);
@@ -351,8 +375,8 @@ export default function () {
                             id: bulletId,
                             shooterId: null,
                             direction: {
-                                x: directionX * speed/5,
-                                y: directionY * speed/5
+                                x: directionX * speed / 5,
+                                y: directionY * speed / 5
                             },
                             isEnemy: true,
                             isLaser: true,

@@ -40,12 +40,14 @@ function Boss(storeDependencies, state) {
                 towerImage.src = './sprites/tower.png';
             });
         },
-        render(context, camera) {
+        setEntityHealth(health){
+            state.health = health;
+        },
+        render({ context, canvas, camera }) {
             if (state.position.x > camera.x + camera.w || state.position.x < camera.x
                 || state.position.y > camera.y + camera.h || state.position.y < camera.y) {
                 return;
             }
-
             let bullets = Object.keys(store.state.bulletsByShooterId[id]).map(bulletId => store.state.bulletsByShooterId[id][bulletId])
             let behindBoss = bullets.filter(b => b.y <= state.position.y - 80); // todo make variable shoot offset and use in fysik
             let inFrontOffBoss = bullets.filter(b => b.y > state.position.y - 80); // todo make variable shoot offset and use in fysik
@@ -54,7 +56,7 @@ function Boss(storeDependencies, state) {
             }
             if (Sprites.boss.complete) {
                 let scale = 2;
-                if (state.isMoving ) {
+                if (state.isMoving) {
                     state.currentFrame += 0.5;
                     if (state.currentFrame > 23.5) {
                         state.currentFrame = 0;
@@ -72,10 +74,29 @@ function Boss(storeDependencies, state) {
                 drawBullet(context, bullet, color);
             }
 
+            if (state.playerInRange) {
+                drawHealthBar(context, canvas, camera, state);
+            }
         },
         fysik(delta) {
-            bossFysik(delta)
+            bossFysik(delta);
+        },
+        getState(){
+            return {
+                health: state.health
+            }
         }
+    };
+
+    function drawHealthBar(context, canvas, camera, state) {
+        let inset = 64;
+        context.fillStyle = 'white';
+        context.globalAlpha = 0.15;
+        let height = 20;
+        context.fillRect(camera.x + inset, camera.y + camera.h-inset/2-height, canvas.width - inset * 2, height);
+        context.globalAlpha = 0.8;
+        let multiPlyer = state.health / state.maxHealth;
+        context.fillRect(camera.x + inset, camera.y + camera.h-inset/2-height, (canvas.width - inset * 2)* multiPlyer, height);
     }
 };
 Boss.createState = function ({ controllerId, x, y }) {
@@ -83,6 +104,8 @@ Boss.createState = function ({ controllerId, x, y }) {
         clone: false,
         id: genId(),
         color: rColor(),
+        maxHealth: 15000,
+        health: 15000,
         position: {
             x: x,
             y: y
