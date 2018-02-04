@@ -6,8 +6,8 @@ export default {
         y: 8200
     },
     boss: {
-        x: 1650,
-        y: 1000
+        x: 2300,
+        y: 1200
     },
     bricks: [
         { x: 32, y: 32 * 10 },
