@@ -54,7 +54,8 @@ export default async function () {
             },
             hasTripleBow: false,
             hasLaser: false,
-            health: 100
+            health: 100,
+            sprite: null
         }
     };
 
@@ -133,9 +134,6 @@ export default async function () {
                             firstKey: 'bulletsByShooterId',
                             secondKey: shooterId,
                             thirdKey: bulletId
-                        });
-                        setTimeout(() => {
-                            console.log('REMOVED BULLET?', state.bulletsByShooterId[shooterId][bulletId]);
                         });
                     }
                 },
@@ -375,7 +373,7 @@ export default async function () {
                         let { x, y } = state.bulletsByShooterId[id][bulletId];
                         commit('REMOVE_ENTITY_BULLET', { shooterId: id, bulletId });
                         commit('ADD_BURN', { x, y })
-                    }, Math.round(Math.random() * 200) + 1000);
+                    }, Math.round(Math.random() * 200) + 2000);
                 },
                 fireSmallBlast({ state, commit }, { id: entityId, x, y }) {
                     let id = entityId;
@@ -440,8 +438,8 @@ export default async function () {
                         commit('ADD_ENTITY_BULLET', { id, bullet });
 
                         setTimeout(() => {
-                            if (!state.bullets[bulletId]) return;
-                            let { x, y } = state.bullets[bulletId];
+                            if (!state.bulletsByShooterId[id][bulletId]) return;
+                            let { x, y } = state.bulletsByShooterId[id][bulletId];
                             commit('REMOVE_ENTITY_BULLET', { shooterId: id, bulletId });
                             commit('ADD_BURN', { x, y })
                         }, Math.round(Math.random() * 200) + 10);
@@ -478,8 +476,8 @@ export default async function () {
                         };
                         commit('ADD_ENTITY_BULLET', { id, bullet });
                         setTimeout(() => {
-                            if (!state.bullets[bulletId]) return;
-                            let { x, y } = state.bullets[bulletId];
+                            if (!state.bulletsByShooterId[id][bulletId]) return;
+                            let { x, y } = state.bulletsByShooterId[id][bulletId];
                             commit('REMOVE_ENTITY_BULLET', { shooterId: id, bulletId });
                             commit('ADD_BURN', { x, y })
                         }, Math.round(Math.random() * 200) + 2000);
@@ -546,8 +544,8 @@ export default async function () {
                         commit('ADD_ENTITY_BULLET', { id, bullet });
 
                         setTimeout(() => {
-                            if (!state.bullets[bulletId]) return;
-                            let { x, y } = state.bullets[bulletId];
+                            if (!state.bulletsByShooterId[id][bulletId]) return;
+                            let { x, y } = state.bulletsByShooterId[id][bulletId];
                             commit('REMOVE_ENTITY_BULLET', { shooterId: id, bulletId });
                             commit('ADD_BURN', { x, y })
                         }, Math.round(Math.random() * 200) + 2000);
@@ -589,13 +587,12 @@ export default async function () {
                             hue: beamHue,
                             presentDimension: false
                         };
-                        console.log(id);
                         commit('ADD_BULLET', bullet);
 
                         setTimeout(() => {
                             if (!state.bullets[bulletId]) return;
                             let { x, y } = state.bullets[bulletId];
-                            commit('REMOVE_BULLET', bulletId );
+                            commit('REMOVE_BULLET', bulletId);
                             commit('ADD_BURN', { x, y })
                         }, Math.round(Math.random() * 200) + 2000);
                     }
@@ -624,6 +621,9 @@ export default async function () {
     enemyFactory.createBoss({
         x: World.boss.x,
         y: World.boss.y,
+    });
+    worldLayer.enemyFactories.forEach(f => {
+        f({ localStore, store, controllerId: clientId })
     });
     // enemyFactory.createFriend({
     //     x: 2300,

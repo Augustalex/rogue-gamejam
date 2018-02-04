@@ -90,7 +90,7 @@ export default function (storeDependencies, entityState) {
 
         if (!entityState.isMoving) {
             lastTime += delta;
-            if (lastTime > enemyTimeToShoot) {
+            if (lastTime > enemyTimeToShoot && store.state.presentDimension) {
                 localStore.dispatch('entityFireArrow', {
                     id: entityState.id,
                     x: entityState.position.x,

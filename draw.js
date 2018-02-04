@@ -22,7 +22,7 @@ let vignetteCanvas = null;
 let first = true;
 
 let previousClientPosition = null;
-let rain = null
+let rain = null;
 
 export default async function draw({ canvas: finalCanvas, context: finalContext }, { store, localStore, clientId }) {
     // var t0 = performance.now();
@@ -110,7 +110,7 @@ export default async function draw({ canvas: finalCanvas, context: finalContext 
             if (presentTile && store.state.presentDimension) {
                 tile = presentTile;
             }
-            if (!tile) continue;
+            if (!tile || tile === 'EMPTY') continue;
 
             let tileX = x * tileWidth;
             if (tileX > camera.x + camera.w || tileX + tileWidth < camera.x
@@ -143,7 +143,7 @@ export default async function draw({ canvas: finalCanvas, context: finalContext 
     // console.log("Call to Draw.js took " + (t1 - t0) + " milliseconds.")
 }
 
-function drawPlayer(context, { position: { x, y }, color, moving, shooting, teleporting, teleportCursor, id }, camera) {
+function drawPlayer(context, { position: { x, y }, color, moving, shooting, teleporting, teleportCursor, id, sprite }, camera) {
     if (x > camera.x + camera.w || x < camera.x
         || y > camera.y + camera.h || y < camera.y) {
         return;
@@ -160,14 +160,18 @@ function drawPlayer(context, { position: { x, y }, color, moving, shooting, tele
     // let dir = Math.atan2(aimVector.y, aimVector.x);
     if (shadows) {
         // context.globalAlpha = 0.5;
-        context.fillStyle = 'black';
-        drawCircle(context, Math.floor(x), Math.floor(y), 10);
+        context.fillStyle = 'rgba(0,0,0,0.2)';
+        drawCircle(context, Math.floor(x), Math.floor(y - 2), 10);
         // context.filter = "none";
     }
     context.globalAlpha = 1;
     let scale = 2;
     context.imageSmoothingEnabled = false;
-    context.drawImage(Sprites.character, Math.floor(x - Sprites.character.width * scale / 2), Math.floor(y - Sprites.character.height * scale), Sprites.character.width * scale, Sprites.character.height * scale);
+    if(!sprite) {
+        console.log('!SPRITE');
+    }
+    if (!sprite) return;
+    context.drawImage(sprite, Math.floor(x - sprite.width * scale / 2), Math.floor(y - sprite.height * scale), sprite.width * scale, sprite.height * scale);
 }
 
 function drawBullet(context, bullet, color) {

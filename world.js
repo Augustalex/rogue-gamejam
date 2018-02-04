@@ -5,6 +5,14 @@ export default {
         x: 1200,
         y: 6200
     },
+    // playerSpawn: {
+    //     x: 1800,
+    //     y: 3000
+    // },
+    // playerSpawn: {
+    //     x: 4800,
+    //     y: 1050
+    // },
     boss: {
         x: 4300,
         y: 1050

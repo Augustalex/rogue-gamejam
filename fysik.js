@@ -144,6 +144,46 @@ function Player({ localStore, store, playerId }) {
         }
     }
 
+    let lastMoving = null;
+    let animation = {
+        lastFrame: 0,
+        frameIndex: 0,
+        sprites: null
+    };
+
+    const getPlayerSprites = (lastMoving, isRunning) => {
+        if (isRunning) {
+            if (lastMoving.x > 0.1) {
+                return Sprites.characterRunRight;
+            }
+            else if (lastMoving.x < -0.1) {
+                return Sprites.characterRunLeft;
+            }
+            else if (lastMoving.y > 0.1) {
+                return Sprites.characterRunDown;
+            }
+            else if (lastMoving.y < -0.1) {
+                return Sprites.characterRunUp;
+            }
+        }
+        else {
+            if (lastMoving.x > 0.1) {
+                return Sprites.characterIdleRight;
+            }
+            else if (lastMoving.x < -0.1) {
+                return Sprites.characterIdleLeft;
+            }
+            else if (lastMoving.y > 0.1) {
+                return Sprites.characterIdleDown;
+            }
+            else if (lastMoving.y < -0.1) {
+                return Sprites.characterIdleUp;
+            }
+        }
+    };
+    const playerFrameTime = .056;
+    const playerRunningFrameTime = .024;
+
     return {
         lastPosition,
         currentPosition,
@@ -179,10 +219,11 @@ function Player({ localStore, store, playerId }) {
                 y += speed * delta * player.moving.y
             }
 
+            let running = (player.moving.x > 1 || player.moving.y > 1);
             if (moving) {
                 if (timeToNextSound <= 0) {
                     store.dispatch('playerMoveSound', { id: playerId, x, y });
-                    let speedMultiplier = (player.moving.x > 1 || player.moving.y > 1) ? .6 : 1;
+                    let speedMultiplier = running ? .6 : 1;
                     timeToNextSound = speedMultiplier + Math.random() * .01;
                 }
                 else {
@@ -193,6 +234,45 @@ function Player({ localStore, store, playerId }) {
                 timeToNextSound = 0;
             }
 
+            if (!lastMoving) {
+                lastMoving = player.moving;
+            }
+            else if ((lastMoving.x !== player.moving.x || lastMoving.y !== player.moving.y)
+                && (Math.abs(player.moving.x) > 0.1 || Math.abs(player.moving.y) > 0.1)) {
+                lastMoving = player.moving;
+            }
+
+            let sprites;
+            if (shooting) {
+                // sprites = getPlayerSprites(player.shooting.direction, moving);
+                sprites = getPlayerSprites(lastMoving, moving);
+            }
+            else {
+                sprites = getPlayerSprites(lastMoving, moving);
+            }
+            let sprite;
+            if (sprites) {
+                if (animation.sprites !== sprites) {
+                    animation.sprites = sprites;
+                    animation.frameIndex = 0;
+                    animation.lastFrame = 0;
+                }
+                else {
+                    sprite = sprites[animation.frameIndex];
+                    animation.lastFrame += delta;
+                    if (animation.lastFrame >= (running ? playerRunningFrameTime : playerFrameTime)) {
+                        animation.lastFrame = 0;
+                        animation.frameIndex++;
+                        if (animation.frameIndex >= sprites.length) {
+                            animation.frameIndex = 0;
+                        }
+                    }
+                }
+                if (sprite) {
+                    localStore.state.playersById[playerId].sprite = sprite;
+                }
+            }
+
             let tileWidth = store.state.worldLayer.tileWidth;
             let layerPosX = Math.floor(x / tileWidth);
             let tileHeight = store.state.worldLayer.tileHeight;
@@ -200,7 +280,7 @@ function Player({ localStore, store, playerId }) {
             let layerRealX = layerPosX * tileWidth;
             let layerRealY = layerPosY * tileHeight;
             let layer = store.state.worldLayer.layer;
-            if (layer[layerPosY][layerPosX].steep) {
+            if (layer[layerPosY][layerPosX].steep || (layer[layerPosY][layerPosX].steepPresent && localStore.state.presentDimension)) {
                 if (x > layerRealX && x < layerRealX + tileWidth
                     && y > layerRealY && y < layerRealY + tileHeight) {
                     console.log('player fell to their death');
@@ -321,14 +401,14 @@ function intersect(x1, y1, x2, y2, x3, y3, x4, y4) {
     return 1; //lines intersect, return true
 }
 
-let spriteScale = 2;
+let spriteScale = 1;
 
 //TODO: move to player.js
 function getPlayerBoundingBox() {
     return {
-        left: -Sprites.character.width * spriteScale / 2,
-        right: Sprites.character.width * spriteScale / 2,
-        top: -Sprites.character.height * spriteScale,
+        left: -Sprites.characterIdleDown[0].width * spriteScale / 2,
+        right: Sprites.characterIdleDown[0].width * spriteScale / 2,
+        top: -Sprites.characterIdleDown[0].height * spriteScale,
         bottom: 0,
     }
 }

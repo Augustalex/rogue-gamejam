@@ -11,8 +11,11 @@ export default function WorldMaker(worldData) {
         colorToTileId,
         attributesByTileId,
         colorToAudioName,
+        attributesByAudioName,
         TileGetters,
-        attributesByAudioName
+        enemyMapPath,
+        colorToEnemyName,
+        EnemyFactoryFactory
     } = worldData;
     let availableColors = Object.keys(colorToTileId).map(colorString => {
         let [rs, gs, bs] = colorString.split(',');
@@ -20,6 +23,11 @@ export default function WorldMaker(worldData) {
     });
 
     let availableAudioColors = Object.keys(colorToAudioName).map(colorString => {
+        let [rs, gs, bs] = colorString.split(',');
+        return [parseFloat(rs), parseFloat(gs), parseFloat(bs)];
+    });
+
+    let availableEnemyColors = Object.keys(colorToEnemyName).map(colorString => {
         let [rs, gs, bs] = colorString.split(',');
         return [parseFloat(rs), parseFloat(gs), parseFloat(bs)];
     });
@@ -36,18 +44,26 @@ export default function WorldMaker(worldData) {
             if (audioMapPath) {
                 audioMap = await mapTools.loadToMatrix(audioMapPath, availableAudioColors);
             }
+            let enemyMap;
+            if (enemyMapPath) {
+                enemyMap = await mapTools.loadToMatrix(enemyMapPath, availableEnemyColors);
+            }
+
             let sprites = await loadSprites(spritePaths);
             let tileGetters = TileGetters(sprites);
-            let { layer, tileWidth, tileHeight } = await createLayer({
+            let data = await createLayer({
                 colorToTileId,
                 tileGetters,
                 matrix,
                 attributesByTileId,
                 audioMap,
                 colorToAudioName,
-                attributesByAudioName
+                attributesByAudioName,
+                enemyMap,
+                colorToEnemyName,
+                EnemyFactoryFactory
             });
-            return { layer, tileWidth, tileHeight, tileGetters };
+            return { ...data, tileGetters };
         }
     };
 }
@@ -65,7 +81,22 @@ async function loadSprites(spritePaths) {
     return sprites;
 }
 
-async function createLayer({ colorToTileId, tileGetters, matrix, attributesByTileId, colorToAudioName, attributesByAudioName, audioMap }) {
+async function createLayer(options) {
+    let {
+        colorToTileId,
+        tileGetters,
+        matrix,
+        attributesByTileId,
+        colorToAudioName,
+        attributesByAudioName,
+        audioMap,
+        enemyMap,
+        colorToEnemyName,
+        EnemyFactoryFactory
+    } = options;
+
+    let enemyFactories = [];
+
     let tileRows = [];
     for (let y = 0; y < matrix.length; y++) {
         let tileRow = [];
@@ -78,8 +109,11 @@ async function createLayer({ colorToTileId, tileGetters, matrix, attributesByTil
                 tileRow.push(null);
                 continue;
             }
-
             let tileGetter = tileGetters[tileId];
+            if (!tileGetter) {
+                console.log(tileId);
+
+            }
             let tile = tileGetter();
             let presentTile;
             let attributes = attributesByTileId[tileId] || {};
@@ -98,9 +132,24 @@ async function createLayer({ colorToTileId, tileGetters, matrix, attributesByTil
                     }
                 }
             }
+
+            if (enemyMap) {
+                let enemyColor = enemyMap[y][x];
+                if (enemyColor) {
+                    let enemyName = colorToEnemyName[enemyColor];
+                    let factory = EnemyFactoryFactory[enemyName];
+                    if (factory) {
+                        let f = factory(x, y);
+                        if (f) {
+                            enemyFactories.push(f)
+                        }
+                    }
+                }
+            }
+
             tileRow.push({ tile, ...attributes, presentTile, audioZone });
         }
         tileRows.push(tileRow);
     }
-    return { layer: tileRows, tileWidth: 32, tileHeight: 32 };
+    return { layer: tileRows, tileWidth: 32, tileHeight: 32, enemyFactories: enemyFactories || [] };
 }

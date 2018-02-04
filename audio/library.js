@@ -1,7 +1,9 @@
 export default {
-    "background-0": "ambientfinal(typ)remixedMasteredN.ogg",
-    "background-1": "ThroneroomN.ogg",
-    "bossFight-0": "dumdumdummixedMasteredN.ogg",
+    "sweeps-0": "SpoopySweepsN.ogg",
+    "boss-1": "BossFightV3Heim.ogg",
+    "ambient-0": "ambientfinal(typ)remixedMasteredN.ogg",
+    "throneroom": "ThroneroomN.ogg",
+    "dumdum": "dumdumdummixedMasteredN.ogg",
     "arrow": "XbowV5.wav",
     "wind": "VindloopFinal.wav",
     "rain": "rainlong.ogg",

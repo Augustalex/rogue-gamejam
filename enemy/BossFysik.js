@@ -88,7 +88,7 @@ export default function (storeDependencies, entityState) {
                     timeSinceLastAction = 0;
                     let randomPlayerId = Object.keys(store.state.playersById)[0];
                     let targetPlayerPosition = store.state.playersById[randomPlayerId].position;
-                    targetPlayerDir = Math.atan2((targetPlayerPosition.y+32) - entityState.position.y, targetPlayerPosition.x - entityState.position.x);
+                    targetPlayerDir = Math.atan2((targetPlayerPosition.y + 32) - entityState.position.y, targetPlayerPosition.x - entityState.position.x);
                 }
             }
         }
@@ -133,13 +133,13 @@ export default function (storeDependencies, entityState) {
                             id: entityState.id,
                             x: entityState.position.x,
                             y: entityState.position.y - 80,
-                            targetDir: targetPlayerDir + Math.PI/8 + Math.random() *Math.PI/4,
+                            targetDir: targetPlayerDir + Math.PI / 8 + Math.random() * Math.PI / 4,
                         });
                         localStore.dispatch('fireLaser', {
                             id: entityState.id,
                             x: entityState.position.x,
                             y: entityState.position.y - 80,
-                            targetDir: targetPlayerDir -( Math.PI/8 + Math.random() *Math.PI/4),
+                            targetDir: targetPlayerDir - (Math.PI / 8 + Math.random() * Math.PI / 4),
                         });
                     }
                     localStore.dispatch('fireLaser', {
