@@ -252,7 +252,6 @@ export default function () {
                     if (state.entitiesById[id]) {
                         let { x, y } = state.entitiesById[id];
                         let health = state.entitiesById[id].getState().health;
-                        console.log(health);
                         let newHealth = health - damage;
                         if (newHealth <= 0) {
                             dispatch('killEntity', id)
