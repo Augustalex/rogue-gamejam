@@ -265,6 +265,8 @@ export default function () {
                     };
                     commit('ADD_BULLET', bullet);
 
+                    audioEngine.play('arrow');
+
                     setTimeout(() => {
                         if (!state.bullets[bulletId]) return;
                         let { x, y } = state.bullets[bulletId];

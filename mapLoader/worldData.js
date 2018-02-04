@@ -4,8 +4,12 @@ export default {
         'bricks': './sprites/sprite_Tile_Edge.png'
     },
     colorToTileId: {
-        '182,15,15,255': 'brick1',
-        '0,0,0,255': 'brick2'
+        '115,132,140,255': 'brick1',
+        '0,0,0,255': 'brick2',
+        '181,148,206,255': 'tileEdgeLeft',
+        '123,82,156,255': 'spriteTileTopBrick1',
+        '99,16,156,255': 'tileEdgeRight',
+        '41,33,58,255': 'tileEdgeBottom',
     },
     TileGetters: (sprites) => ({
         brick() {

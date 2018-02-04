@@ -2,9 +2,9 @@ import mapLoader from './mapLoader.js'
 import canvasToMatrix from './canvasToMatrix.js';
 
 export default {
-    async loadToMatrix(src) {
+    async loadToMatrix(src, availableColors) {
         let canvas = await mapLoader(src);
-        let matrix = canvasToMatrix(canvas);
+        let matrix = canvasToMatrix(canvas, availableColors);
         return matrix;
     }
 }

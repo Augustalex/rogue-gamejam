@@ -1,16 +1,24 @@
 import mapLoader from './mapLoader.js'
 
 export default async function mapInspector(src, tileMap) {
+    let output = document.createElement('canvas');
+    output.width = 5000;
+    output.height = 5000;
+    let outputContext = output.getContext('2d');
+    document.body.appendChild(output);
+    outputContext.imageSmoothingEnabled = false;
+
     let imageCanvas = await mapLoader(src);
     let imageContext = imageCanvas.getContext('2d');
-    imageContext.imageSmoothingEnabled = false;
-    document.body.appendChild(imageCanvas);
+
+    outputContext.drawImage(imageCanvas, 0, 0, imageCanvas.width, imageCanvas.height, 0, 0, imageCanvas.width * 16, imageCanvas.height * 16);
 
     let lastData = [-1, -1, -1, -1];
-    imageCanvas.addEventListener('mousemove', e => {
-        let { clientX: x, clientY: y } = e;
+    output.addEventListener('mousemove', e => {
+        let { pageX, pageY } = e;
+        let x = pageX - output.offsetLeft;
+        let y = pageY - output.offsetTop;
         let data = imageContext.getImageData(x, y, 1, 1);
-        console.log(data.data);
         lastData = data.data;
     });
     document.addEventListener('keydown', e => {

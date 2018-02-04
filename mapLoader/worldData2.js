@@ -1,28 +1,45 @@
 export default {
     matrixPath: './mapLoader/worldTest02.bmp',
     spritePaths: {
-        'grass': './sprites/grass_Past001.png',
-        'bricks': './sprites/sprite_Tile_Edge.png'
+        'grass': './sprites/tile_Grass.png',
+        'bricks': './sprites/sprite_Tile_Edge.png',
+        'tileEdgeLeft': './sprites/tiles/tile_Edge_left001.png',
+        'tileEdgeRight': './sprites/tiles/tile_Edge_right001.png',
+        'spriteTileTopBrick1': './sprites/tiles/sprite_Tile_TopBrick001.png',
+        'tileEdgeBottom': './sprites/tiles/tile_Edge_Bottom001.png'
     },
     colorToTileId: {
-        '115,132,140,255': 'brick',
-        '25,123,49,255': 'grass'
+        '25,123,49': 'grass',
+        '115,132,140': 'brick',
+        '181,148,206': 'tileEdgeLeft',
+        '123,82,156': 'spriteTileTopBrick1',
+        '99,16,156': 'tileEdgeRight',
+        '41,33,58': 'tileEdgeBottom',
+        '0,0,0': 'transparent'
     },
     TileGetters: (sprites) => ({
         brick() {
-            let bricks = sprites.bricks.tiles;
-            return bricks[Math.round(Math.random() * bricks.length - 1)];
+            let tiles = sprites.bricks.tiles;
+            return tiles[Math.round((Math.random() * (tiles.length - 1)))];
         },
-        brick1() {
-            let bricks = sprites.bricks.tiles;
-            return bricks[14];
+        tileEdgeLeft() {
+            return sprites.tileEdgeLeft.tiles[0];
         },
-        brick2() {
-            let bricks = sprites.bricks.tiles;
-            return bricks[5];
+        spriteTileTopBrick1() {
+            return sprites.spriteTileTopBrick1.tiles[0];
+        },
+        tileEdgeRight() {
+            return sprites.tileEdgeRight.tiles[0];
+        },
+        tileEdgeBottom() {
+            return sprites.tileEdgeBottom.tiles[0];
         },
         grass() {
-            return sprites.grass.tiles[0];
+            let grass = sprites.grass.tiles;
+            return grass[Math.round(Math.random() * (grass.length - 1))];
+        },
+        transparent() {
+            return null;
         }
     })
 }

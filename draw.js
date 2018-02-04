@@ -72,9 +72,10 @@ export default async function draw(finalCanvas, finalContext, store, localStore,
 
     context.globalAlpha = 1;
     let zoom = 1;
+    let clientPlayer = store.state.playersById[store.state.clientId];
     //context.drawImage(zoomCanvas, -players[0].x*zoom + canvas.width/2, -players[0].y*zoom + canvas.height/2, canvas.width*zoom, canvas.height*zoom);
-    let sx = Math.round(players[0].position.x - (finalCanvas.width / zoom) / 2);
-    let sy = Math.round(players[0].position.y - (finalCanvas.height / zoom) / 2);
+    let sx = Math.round(clientPlayer.position.x - (finalCanvas.width / zoom) / 2);
+    let sy = Math.round(clientPlayer.position.y - (finalCanvas.height / zoom) / 2);
     //context.FillRect(0, 0, canvas.width, canvas.height);
 
     //Final draw to the visible canvas (the camera)
@@ -82,8 +83,8 @@ export default async function draw(finalCanvas, finalContext, store, localStore,
     finalContext.imageSmoothingEnabled = false;
     finalContext.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
 
-    let wsx = Math.round(players[0].position.x - (finalCanvas.width / zoom) / 2);
-    let wsy = Math.round(players[0].position.y - (finalCanvas.height / zoom) / 2);
+    let wsx = Math.round(clientPlayer.position.x - (finalCanvas.width / zoom) / 2);
+    let wsy = Math.round(clientPlayer.position.y - (finalCanvas.height / zoom) / 2);
     let sw = finalCanvas.width / zoom;
     let sh = finalCanvas.height / zoom;
     finalContext.drawImage(worldCanvas, wsx, wsy, sw, sh, 0, 0, finalCanvas.width, finalCanvas.height);

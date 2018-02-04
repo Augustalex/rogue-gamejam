@@ -3,12 +3,16 @@ import mapTools from './mapTools.js';
 import loadSprite from './loadSprite.js';
 import rasterizeLayer from './rasterizeLayer.js';
 
-export default function WorldMaker(worldData,) {
+export default function WorldMaker(worldData) {
     let { matrixPath, spritePaths, colorToTileId, TileGetters } = worldData;
+    let availableColors = Object.keys(colorToTileId).map(colorString => {
+        let [rs, gs, bs] = colorString.split(',');
+        return [parseFloat(rs), parseFloat(gs), parseFloat(bs)];
+    });
 
     return {
         async make() {
-            let matrix = await mapTools.loadToMatrix(matrixPath);
+            let matrix = await mapTools.loadToMatrix(matrixPath, availableColors);
             let sprites = await loadSprites(spritePaths);
             let tileGetters = TileGetters(sprites);
             let layer = await createLayer(colorToTileId, tileGetters, matrix);
@@ -40,6 +44,7 @@ async function createLayer(colorToTileId, tileGetters, matrix) {
 
             let tileId = colorToTileId[color];
             if (!tileId) {
+                console.log('BUH!', color);
                 tileRow.push(null);
                 continue;
             }
