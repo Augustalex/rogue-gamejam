@@ -1,3 +1,5 @@
+import Sprites from './sprites.js';
+
 const constants = {
     bulletSpeed: 1000,
     timeToShoot: .5,
@@ -227,7 +229,6 @@ function intersect(x1, y1, x2, y2, x3, y3, x4, y4) {
     if ((r1 !== 0) && (r2 !== 0) && (sameSign(r1, r2))) {
         return 0; //return that they do not intersect
     }
-
     //Line segments intersect: compute intersection point.
     denom = (a1 * b2) - (a2 * b1);
 
@@ -237,6 +238,28 @@ function intersect(x1, y1, x2, y2, x3, y3, x4, y4) {
 
     // lines_intersect
     return 1; //lines intersect, return true
+}
+
+let spriteScale = 2;
+
+//TODO: move to player.js
+function getPlayerBoundingBox() {
+    return {
+        left: -Sprites.character.width * spriteScale / 2,
+        right: Sprites.character.width * spriteScale / 2,
+        top: -Sprites.character.height * spriteScale,
+        bottom: 0,
+    }
+}
+
+//TODO: move to boss.js
+function getBossBoundingBox() {
+    return {
+        left: -Sprites.boss.width * spriteScale / 2,
+        right: Sprites.boss.width * spriteScale / 2,
+        top: -Sprites.boss.height * spriteScale,
+        bottom: 0
+    }
 }
 
 function bulletFysik({ store, localStore }, delta) {
@@ -267,30 +290,47 @@ function bulletFysik({ store, localStore }, delta) {
             for (let collidable of collidableObjects) {
                 if (collidable.id === bullet.shooterId) continue;
 
-                let playerPosition = collidable.currentPosition;
+                let x = collidable.currentPosition.x;
+                let y = collidable.currentPosition.y;
+                let b = getPlayerBoundingBox();
+                let leftLine = [x + b.left, y + b.top, x + b.left, y + b.bottom];
+                let rightLine = [x + b.right, y + b.top, x + b.right, y + b.bottom];
+                let topLine = [x + b.left, y + b.top, x + b.right, y + b.top];
+                let bottomLine = [x + b.left, y + b.bottom, x + b.right, y + b.bottom];
 
-                let playerWidth = collidable.width;
-                let playerHeight = collidable.height;
-                if (bullet.isEnemy) {
-                    // hack to collide with bigger bullets
-                    playerWidth = playerWidth * 2;
-                    playerHeight = playerHeight * 2
-                }
-                let playerTopLeft = {
-                    x: playerPosition.x - (playerWidth / 2),
-                    y: playerPosition.y - (playerHeight / 2)
-                };
-                let playerLines = [
-                    [playerTopLeft.x, playerTopLeft.y, playerTopLeft.x + playerWidth, playerTopLeft.y],
-                    [playerTopLeft.x + playerWidth, playerTopLeft.y, playerTopLeft.x + playerWidth, playerTopLeft.y + playerHeight],
-                    [playerTopLeft.x + playerWidth, playerTopLeft.y + playerHeight, playerTopLeft.x, playerTopLeft.y + playerHeight],
-                    [playerTopLeft.x, playerTopLeft.y + playerHeight, playerTopLeft.x, playerTopLeft.y],
+                let boxLines = [
+                    leftLine,
+                    rightLine,
+                    topLine,
+                    bottomLine
                 ];
 
-                let intersects = playerLines.some(line => {
-                    return intersect(line[0], line[1], line[2], line[3], bullet.x, bullet.y, newPos.x, newPos.y)
+                let bulletSize = 8;
+                let startPos = {
+                    x: bullet.x - bullet.direction.x * bulletSize * 2,
+                    y: bullet.y - bullet.direction.y * bulletSize * 2
+                };
+                let endPos = {
+                    x: newPos.x + bullet.direction.x * bulletSize * 2,
+                    y: newPos.y + bullet.direction.y * bulletSize * 2
+                };
+                let bulletDir = Math.atan2(bullet.direction.y, bullet.direction.x);
+                let bulletTopDir = bulletDir - Math.PI / 2;
+                let bulletBottomDir = bulletDir + Math.PI / 2;
+                let bulletTopLine = [
+                    startPos.x + Math.cos(bulletTopDir) * bulletSize, startPos.y + Math.sin(bulletTopDir) * bulletSize,
+                    endPos.x + Math.cos(bulletTopDir) * bulletSize, endPos.y + Math.sin(bulletTopDir) * bulletSize
+                ];
+                let bulletBottomLine = [
+                    startPos.x + Math.cos(bulletBottomDir) * bulletSize, startPos.y + Math.sin(bulletBottomDir) * bulletSize,
+                    endPos.x + Math.cos(bulletBottomDir) * bulletSize, endPos.y + Math.sin(bulletBottomDir) * bulletSize
+                ];
+                let intersects = boxLines.some(line => {
+                    return intersect(line[0], line[1], line[2], line[3], bulletTopLine[0], bulletTopLine[1], bulletTopLine[2], bulletTopLine[3]) ||
+                        intersect(line[0], line[1], line[2], line[3], bulletBottomLine[0], bulletBottomLine[1], bulletBottomLine[2], bulletBottomLine[3])
                 });
                 if (intersects) {
+                    console.log(1);
                     localStore.commit('REMOVE_ENTITY_BULLET', { shooterId, bulletId });
                     store.dispatch('playerShot', {
                         id: collidable.id,
