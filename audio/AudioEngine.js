@@ -6,6 +6,8 @@ export default function () {
 
     let songsPlaying = [];
 
+    let currentAudio = null;
+
     return {
         getSongsPlaying: () => songsPlaying,
         load(song) {
@@ -41,6 +43,17 @@ export default function () {
                 setTimeout(async () => {
                     await audio.play();
                 });
+            }
+        },
+        async changeSongIfNewZone({ layer, tileWidth, tileHeight }, { x, y }) {
+            let layerPosX = Math.floor(x / tileWidth);
+            let layerPosY = Math.floor(y / tileHeight);
+            let audioZone = layer[layerPosY][layerPosX].audioZone;
+            if (audioZone) {
+                if (currentAudio !== audioZone.audioName) {
+                    currentAudio = audioZone.audioName;
+                    await this.play(currentAudio, { type: 'background', volume: .5 });
+                }
             }
         }
     }

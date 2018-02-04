@@ -101,7 +101,7 @@ function Player({ localStore, store, playerId }) {
     let lastPosition = { x: state.position.x, y: state.position.y };
     let currentPosition = { x: state.position.x, y: state.position.y };
 
-    const timeBetweenSounds = 1;
+    const timeBetweenSounds = .2;
     let timeToNextSound = 0;
 
     return {
@@ -142,7 +142,8 @@ function Player({ localStore, store, playerId }) {
             if (moving) {
                 if (timeToNextSound <= 0) {
                     store.dispatch('playerMoveSound', { id: playerId, x, y });
-                    timeToNextSound = timeBetweenSounds;                }
+                    timeToNextSound = .7 - player.moving * .25 + Math.random() * .01;
+                }
                 else {
                     timeToNextSound -= delta;
                 }
@@ -165,6 +166,8 @@ function Player({ localStore, store, playerId }) {
                     store.dispatch('playerFall', { id: playerId, x, y });
                 }
             }
+
+            localStore.dispatch('updateCurrentAudioZone');
 
             currentPosition.x = x;
             currentPosition.y = y;
@@ -334,7 +337,7 @@ function bulletFysik({ store, localStore }, delta) {
             let collidableObjects = Object.keys(playerObjectsById).map(k => playerObjectsById[k]);
             for (let collidable of collidableObjects) {
                 if (collidable.id === bullet.shooterId) continue;
-                if(bullet.presentDimension !== store.state.presentDimension) continue;
+                if (bullet.presentDimension !== store.state.presentDimension) continue;
 
                 let x = collidable.currentPosition.x;
                 let y = collidable.currentPosition.y;
@@ -376,13 +379,13 @@ function bulletFysik({ store, localStore }, delta) {
                         intersect(line[0], line[1], line[2], line[3], bulletBottomLine[0], bulletBottomLine[1], bulletBottomLine[2], bulletBottomLine[3])
                 });
                 if (intersects) {
-                    if(bullet.isLaser){
+                    if (bullet.isLaser) {
                         store.dispatch('playerShot', {
                             id: collidable.id,
                             damage: 0.2
                         })
                     }
-                    else{
+                    else {
                         localStore.commit('REMOVE_ENTITY_BULLET', { shooterId, bulletId });
                         store.dispatch('playerShot', {
                             id: collidable.id,

@@ -84,7 +84,8 @@ export default async function draw({ canvas: finalCanvas, context: finalContext 
     // context.globalAlpha = 1;
 
     //Final draw to the visible canvas (the camera)
-    finalContext.fillStyle = "#2C2E33";
+    // finalContext.fillStyle = "#2C2E33";
+    finalContext.fillStyle = "#77b3e0";
     finalContext.imageSmoothingEnabled = false;
     finalContext.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
 
@@ -93,7 +94,7 @@ export default async function draw({ canvas: finalCanvas, context: finalContext 
     for (let y = 0; y < worldLayer.length; y++) {
         let tileY = y * tileHeight;
         for (let x = 0; x < worldLayer[y].length; x++) {
-            let { tile, presentTile } = worldLayer[y][x];
+            let { tile, presentTile } = worldLayer[y][x] || {};
             if (presentTile && store.state.presentDimension) {
                 tile = presentTile;
             }
@@ -247,10 +248,12 @@ function applyVignette(store, clientId, finalCanvas, finalContext) {
     let vignetteContext = vignetteCanvas.getContext('2d');
     vignetteContext.clearRect(0, 0, vignetteCanvas.width, vignetteCanvas.height);
     finalContext.globalAlpha = 0.8;
+
     vignetteContext.globalCompositeOperation = 'source-over';
     vignetteContext.drawImage(vignetteImage, 0, 0, vignetteCanvas.width, vignetteCanvas.height);
     vignetteContext.globalCompositeOperation = 'source-in';
-    vignetteContext.fillStyle = `rgb(${255 * ((100 - playerHealth) / 100)},0,0)`;
+    vignetteContext.fillStyle = `rgba(163,209,242,.45)`;
+    // vignetteContext.fillStyle = `rgba(${255 * ((100 - playerHealth) / 100)},0,0,.1)`;
     vignetteContext.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
     finalContext.drawImage(vignetteCanvas, 0, 0, finalCanvas.width, finalCanvas.height);
     finalContext.globalAlpha = 1;

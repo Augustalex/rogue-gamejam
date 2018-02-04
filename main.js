@@ -14,7 +14,7 @@ import Boss from './enemy/Boss.js';
 import Friend from './enemy/Friend.js';
 import EnemyFactory from './enemy/EnemyFactory.js';
 import WorldMaker from "./mapLoader/WorldMaker.js";
-import worldData from "./mapLoader/worldData2.js";
+import worldData from "./mapLoader/world1Data.js";
 
 const { genId, rand255, rHue, rColor } = utils;
 let beamHue = 329;
@@ -33,8 +33,8 @@ export default async function () {
     let worldLayer = await worldMaker.makeLayer();
 
     let audioEngine = AudioEngine();
-    await audioEngine.play('background-1', { volume: .8, type: 'background' });
-    audioEngine.play('wind', { volume: .4 });
+    // await audioEngine.play('background-1', { volume: .8, type: 'background' });
+    // audioEngine.play('wind', { volume: .4 });
 
     const createOwnPlayer = () => {
         return {
@@ -62,6 +62,7 @@ export default async function () {
     let localStore = Store({
         store: {
             state: {
+                //TODO should be called "worldLayers"
                 worldLayer,
                 clientId,
                 //TODO should be called "entityById"
@@ -272,12 +273,15 @@ export default async function () {
                 },
                 playerMoveSound({}, { id, x, y }) {
                     let sounds = [
-                        'playerStep1',
+                        // 'playerStep1',
                         'playerStep2',
-                        'playerStep3'
+                        // 'playerStep3',
+                        'playerStep4',
+                        // 'playerStep5',
+                        'playerStep6'
                     ];
                     let sound = sounds[Math.round(Math.random() * (sounds.length - 1))];
-                    audioEngine.play(sound, { volume: .2 });
+                    audioEngine.play(sound, { volume: .04 });
                 },
                 playerShot({ state, dispatch, commit }, { id: playerId, damage }) {
                     if (state.playersById[playerId]) {
@@ -399,7 +403,7 @@ export default async function () {
                             isEnemy: true,
                             height: 22,
                             presentDimension: true,
-                            hue: ballHue + Math.random()*40
+                            hue: ballHue + Math.random() * 40
                         };
                         commit('ADD_ENTITY_BULLET', { id, bullet });
 
@@ -442,7 +446,7 @@ export default async function () {
                             commit('REMOVE_ENTITY_BULLET', { shooterId: id, bulletId });
                             commit('ADD_BURN', { x, y })
                         }, Math.round(Math.random() * 200) + 10);
-                        hue += 40 /shots;
+                        hue += 40 / shots;
                     }
                 },
                 fireMinigunInCircle({ state, commit }, { id: entityId, x, y }) {
@@ -558,6 +562,13 @@ export default async function () {
                     if (!audioEngine.getSongsPlaying().includes('bossFight-0')) {
                         await audioEngine.play('bossFight-0', { type: 'background' });
                     }
+                },
+                async updateCurrentAudioZone({ state }) {
+                    let localPlayer = state.playersById[state.clientId];
+                    await audioEngine.changeSongIfNewZone(state.worldLayer, {
+                        x: localPlayer.position.x,
+                        y: localPlayer.position.y
+                    })
                 }
             }
         }
@@ -569,22 +580,22 @@ export default async function () {
     });
     store.commit('ADD_PLAYER', createOwnPlayer());
     let enemyFactory = EnemyFactory({ localStore, store }, { controllerId: clientId });
-    enemyFactory.createBoss({
-        x: World.boss.x,
-        y: World.boss.y,
-    });
-    enemyFactory.createFriend({
-        x: 2300,
-        y: 8000,
-    });
-    enemyFactory.createFriend({
-        x: 2600,
-        y: 8300,
-    });
-    enemyFactory.createFriend({
-        x: 2000,
-        y: 8600,
-    });
+    // enemyFactory.createBoss({
+    //     x: World.boss.x,
+    //     y: World.boss.y,
+    // });
+    // enemyFactory.createFriend({
+    //     x: 2300,
+    //     y: 8000,
+    // });
+    // enemyFactory.createFriend({
+    //     x: 2600,
+    //     y: 8300,
+    // });
+    // enemyFactory.createFriend({
+    //     x: 2000,
+    //     y: 8600,
+    // });
 
     let canvas = document.createElement('canvas');
     canvas.width = window.innerWidth - 32;

@@ -44,7 +44,9 @@ function Friend(storeDependencies, state) {
             state.health = health;
         },
         render({ context, canvas, camera }) {
-            let { position: { x, y }, color, shooting, id } = state;
+            if (!store.state.presentDimension) return;
+
+            let { position: { x, y }, color, id } = state;
             if (x < camera.x + camera.w && x > camera.x
                 && y < camera.y + camera.h && y > camera.y) {
                 context.fillStyle = color;
@@ -56,7 +58,7 @@ function Friend(storeDependencies, state) {
                 context.globalAlpha = 1;
                 let scale = 2;
                 context.imageSmoothingEnabled = false;
-                context.drawImage(Sprites.character, Math.floor(x - Sprites.character.width * scale / 2), Math.floor(y - Sprites.character.height * scale), Sprites.character.width * scale, Sprites.character.height * scale);
+                context.drawImage(Sprites.friend, Math.floor(x - Sprites.friend.width * scale / 2), Math.floor(y - Sprites.friend.height * scale), Sprites.friend.width * scale, Sprites.friend.height * scale);
             }
 
             let bullets = Object.keys(store.state.bulletsByShooterId[id]).map(bulletId => store.state.bulletsByShooterId[id][bulletId]);
@@ -91,7 +93,7 @@ Friend.createState = function ({ controllerId, x, y }) {
         id: genId(),
         color: rColor(),
         maxHealth: 150,
-        health: 600,
+        health: 300,
         position: {
             x: x,
             y: y

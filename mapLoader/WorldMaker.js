@@ -4,8 +4,21 @@ import loadSprite from './loadSprite.js';
 import rasterizeLayer from './rasterizeLayer.js';
 
 export default function WorldMaker(worldData) {
-    let { matrixPath, spritePaths, colorToTileId, attributesByTileId, TileGetters } = worldData;
+    let {
+        matrixPath,
+        audioMapPath,
+        spritePaths,
+        colorToTileId,
+        attributesByTileId,
+        colorToAudioName,
+        TileGetters
+    } = worldData;
     let availableColors = Object.keys(colorToTileId).map(colorString => {
+        let [rs, gs, bs] = colorString.split(',');
+        return [parseFloat(rs), parseFloat(gs), parseFloat(bs)];
+    });
+
+    let availableAudioColors = Object.keys(colorToAudioName).map(colorString => {
         let [rs, gs, bs] = colorString.split(',');
         return [parseFloat(rs), parseFloat(gs), parseFloat(bs)];
     });
@@ -18,9 +31,20 @@ export default function WorldMaker(worldData) {
         },
         async makeLayer() {
             let matrix = await mapTools.loadToMatrix(matrixPath, availableColors);
+            let audioMap;
+            if (audioMapPath) {
+                audioMap = await mapTools.loadToMatrix(audioMapPath, availableAudioColors);
+            }
             let sprites = await loadSprites(spritePaths);
             let tileGetters = TileGetters(sprites);
-            let { layer, tileWidth, tileHeight } = await createLayer(colorToTileId, tileGetters, matrix, attributesByTileId);
+            let { layer, tileWidth, tileHeight } = await createLayer({
+                colorToTileId,
+                tileGetters,
+                matrix,
+                attributesByTileId,
+                audioMap,
+                colorToAudioName
+            });
             return { layer, tileWidth, tileHeight, tileGetters };
         }
     };
@@ -39,16 +63,16 @@ async function loadSprites(spritePaths) {
     return sprites;
 }
 
-async function createLayer(colorToTileId, tileGetters, matrix, attributesByTileId) {
+async function createLayer({ colorToTileId, tileGetters, matrix, attributesByTileId, colorToAudioName, audioMap }) {
     let tileRows = [];
     for (let y = 0; y < matrix.length; y++) {
         let tileRow = [];
         for (let x = 0; x < matrix[y].length; x++) {
-            let color = matrix[y][x];
+            let matrixColor = matrix[y][x];
 
-            let tileId = colorToTileId[color];
+            let tileId = colorToTileId[matrixColor];
             if (!tileId) {
-                console.log('BUH!', color);
+                console.log('BUH!', matrixColor);
                 tileRow.push(null);
                 continue;
             }
@@ -60,7 +84,17 @@ async function createLayer(colorToTileId, tileGetters, matrix, attributesByTileI
             if (attributes.present) {
                 presentTile = tileGetters[attributes.present]();
             }
-            tileRow.push({ tile, ...attributes, presentTile });
+
+            let audioZone = null;
+            if (audioMap) {
+                let audioColor = audioMap[y][x];
+                if (audioColor) {
+                    audioZone = {
+                        audioName: colorToAudioName[audioColor]
+                    };
+                }
+            }
+            tileRow.push({ tile, ...attributes, presentTile, audioZone });
         }
         tileRows.push(tileRow);
     }

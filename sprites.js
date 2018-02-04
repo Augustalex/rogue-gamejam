@@ -4,6 +4,7 @@ export default {
     bossPast: [],
     async loadResources() {
         this.character = await loadImageAsync('./sprites/character.png');
+        this.friend = await loadImageAsync('./sprites/friend.png');
         this.boss = await loadImageAsync('./sprites/boss.png');
         this.bossPast = await loadBossFrames('./sprites/boss_Past.png');
         this.bossPresent = await loadBossFrames('./sprites/boss_Present.png');
