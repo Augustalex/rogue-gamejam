@@ -2,8 +2,8 @@ export default {
     width: 5056,
     height: 10528,
     playerSpawn: {
-        x: 4300,
-        y: 1050
+        x: 1200,
+        y: 6200
     },
     boss: {
         x: 4300,
