@@ -91,8 +91,13 @@ export default async function draw({ canvas: finalCanvas, context: finalContext 
     // context.globalAlpha = 1;
 
     //Final draw to the visible canvas (the camera)
-    finalContext.fillStyle = "#2C2E33";
-    // finalContext.fillStyle = "#77b3e0";
+    // finalContext.fillStyle = "#2C2E33";
+    if (localStore.state.presentDimension) {
+        finalContext.fillStyle = "#77b3e0";
+    }
+    else {
+        finalContext.fillStyle = "#2f3c50";
+    }
     finalContext.imageSmoothingEnabled = false;
     finalContext.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
 
@@ -166,7 +171,7 @@ function drawPlayer(context, { position: { x, y }, color, moving, shooting, tele
 }
 
 function drawBullet(context, bullet, color) {
-    if(bullet.isLaser){
+    if (bullet.isLaser) {
         let dir = Math.atan2(bullet.direction.y, bullet.direction.x);
         context.fillStyle = `hsl(${bullet.hue},${80}%,80%)`;
         fillRectRot(context, bullet.x, bullet.y, 64, 64, dir);

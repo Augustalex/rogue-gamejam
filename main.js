@@ -411,7 +411,7 @@ export default async function () {
                             let { x, y } = state.bulletsByShooterId[id][bulletId];
                             commit('REMOVE_ENTITY_BULLET', { shooterId: id, bulletId });
                             commit('ADD_BURN', { x, y })
-                        }, Math.round(Math.random() * 200) + 5000);
+                        }, Math.round(Math.random() * 200) + 2000);
                     }
                 },
                 fireBulletCircle({ state, commit }, { id: entityId, x, y }) {
@@ -482,7 +482,7 @@ export default async function () {
                             let { x, y } = state.bullets[bulletId];
                             commit('REMOVE_ENTITY_BULLET', { shooterId: id, bulletId });
                             commit('ADD_BURN', { x, y })
-                        }, Math.round(Math.random() * 200) + 5000);
+                        }, Math.round(Math.random() * 200) + 2000);
                         directionRad += Math.PI / shots;
                         if (directionRad < startDir + Math.PI * 2) {
                             setTimeout(() => {
@@ -550,7 +550,7 @@ export default async function () {
                             let { x, y } = state.bullets[bulletId];
                             commit('REMOVE_ENTITY_BULLET', { shooterId: id, bulletId });
                             commit('ADD_BURN', { x, y })
-                        }, Math.round(Math.random() * 200) + 5000);
+                        }, Math.round(Math.random() * 200) + 2000);
                     }
                 },
                 firePlayerLaser({ state, commit }, {
@@ -597,7 +597,7 @@ export default async function () {
                             let { x, y } = state.bullets[bulletId];
                             commit('REMOVE_BULLET', bulletId );
                             commit('ADD_BURN', { x, y })
-                        }, Math.round(Math.random() * 200) + 5000);
+                        }, Math.round(Math.random() * 200) + 2000);
                     }
                 },
                 async bossFightSound() {
