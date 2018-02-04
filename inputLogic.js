@@ -46,9 +46,10 @@ export default function ({ keysDown, wasPressed, wasReleased, keysDown: actionKe
         if (Math.abs(player.position.x - 346) < 64 &&
             Math.abs(player.position.y - 6551) < 64) {
             alert('Bless the RNG!')
-            if(Math.random() < 0.2){
+            if (Math.random() < 0.8) {
                 player.hasLaser = true;
-            }else{
+            }
+            else {
                 player.hasTripleBow = true;
             }
         }

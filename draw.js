@@ -282,7 +282,7 @@ function Rain(canvas, context) {
     context.lineCap = 'round';
 
     var init = [];
-    var maxParts = 1000;
+    var maxParts = 250;
     for (var a = 0; a < maxParts; a++) {
         init.push({
             x: Math.random() * w,

@@ -4,99 +4,97 @@ export default function () {
 
     let loadedSongs = {};
 
-    let songsPlaying = [];
-
-    let currentAudioZone = { audioName: 'wind' };
-    let currentAudioZoneSong = 'wind';
+    let audioState = {
+        currentZone: { audioName: 'wind' },
+        currentSong: 'wind',
+        currentAudio: null
+    };
 
     return {
-        getSongsPlaying: () => songsPlaying,
-        load(song) {
-            loadedSongs = new Audio(`./audio/${library[song]}`);
-        },
-        async play(song, { type = 'ambient', volume = 1 } = {}) {
-            console.log('play', song);
-            let audio = loadedSongs[song] || new Audio(`./audio/${library[song]}`);
-            if (!loadedSongs[song]) {
-                loadedSongs[song] = audio;
-            }
-            if (!audio.paused) {
-                audio.pause();
-                audio.currentTime = 0.0;
-            }
-            let audioLoop = () => {
-                if (currentAudioZoneSong === song) {
-                    audio.currentTime = 0;
-                    audio.play();
-                }
-                else {
-                    audio.removeEventListener('ended', audioLoop);
-                }
-            };
-            audio.addEventListener('ended', audioLoop);
-
-            if (type === 'background') {
-                if (songsPlaying.length) {
-                    songsPlaying.forEach(s => {
-                        let playingSong = loadedSongs[s];
-                        let fade = setInterval(() => {
-                            console.log('fade');
-                            playingSong.volume = Math.max(playingSong.volume - 0.01, 0);
-                            if (playingSong.volume === 0.0) {
-                                clearInterval(fade);
-                                playingSong.pause();
-                                playingSong.currentTime = 0.0;
-                            }
-                        }, 200);
-                    });
-                }
-
-                songsPlaying.push(song);
-                audio.addEventListener('pause', () => {
-                    let index = songsPlaying.indexOf(song);
-                    if (index >= 0) {
-                        songsPlaying.splice(index, 1);
-                    }
-                });
-            }
-
-            if (type === 'background') {
-                let fadeInVolume = 0;
-                audio.volume = 0;
-                let fadeIn = setInterval(() => {
-                    audio.volume = Math.min(fadeInVolume += .01, volume);
-                    if (audio.volume === volume) {
-                        console.log('faded in');
-                        clearInterval(fadeIn);
-                    }
-                }, 200);
-            }
-            else {
-                audio.volume = volume;
-            }
-            await audio.play();
-        },
+        load,
+        play,
         async changeSongIfNewZone({ layer, tileWidth, tileHeight }, { x, y, presentDimension }) {
             let layerPosX = Math.floor(x / tileWidth);
             let layerPosY = Math.floor(y / tileHeight);
             let audioZone = layer[layerPosY][layerPosX].audioZone;
             if (audioZone) {
-                if (currentAudioZone.audioName !== audioZone.audioName) {
-                    currentAudioZone = { ...audioZone };
-                    currentAudioZoneSong = currentAudioZone.audioName;
-                    await this.play(currentAudioZone.audioName, { type: 'background', volume: .5 });
+                let newSong;
+                let args;
+                if (audioState.currentZone.audioName !== audioZone.audioName) {
+                    newSong = audioZone.audioName;
                 }
 
-                if (currentAudioZone.past && !presentDimension && currentAudioZoneSong !== currentAudioZone.past) {
-                    currentAudioZoneSong = currentAudioZone.past;
-                    console.log('play past');
-                    await this.play(currentAudioZone.past, { type: 'background', volume: .2 });
+                if (audioState.currentZone.past && !presentDimension && audioState.currentSong !== audioState.currentZone.past) {
+                    newSong = audioState.currentZone.past;
                 }
-                else if (currentAudioZone.present && presentDimension && currentAudioZoneSong !== currentAudioZone.present) {
-                    currentAudioZoneSong = currentAudioZone.present;
-                    await this.play(currentAudioZone.present, { type: 'background', volume: .2 });
+                else if (audioState.currentZone.present && presentDimension && audioState.currentSong !== audioState.currentZone.present) {
+                    newSong = audioState.currentZone.present;
+                }
+
+                if (newSong) {
+                    await changeZone(audioZone, newSong, args);
                 }
             }
         }
+    };
+
+    async function play(song, { type = 'ambient', volume = 1 } = {}) {
+        let audio = load(song);
+        if (!audio.paused) {
+            audio.pause();
+            audio.currentTime = 0.0;
+        }
+
+        audio.volume = volume;
+        await audio.play();
+    }
+
+    function load(song) {
+        loadedSongs[song] = loadedSongs[song] || new Audio(`./audio/${library[song]}`);
+        return loadedSongs[song];
+    }
+
+    async function changeZone(newZone, song, { type = 'background', volume = 1 } = {}) {
+        let currentAudio = audioState.currentAudio;
+        if (currentAudio) {
+            fadeOut(currentAudio, song);
+        }
+
+        let newAudio = load(song);
+        audioState.currentAudio = newAudio;
+        audioState.currentZone = newZone;
+        audioState.currentSong = song;
+        await fadeIn(newAudio, song, volume);
+    }
+
+    function fadeOut(audio, song) {
+        let volume = audio.volume;
+
+        let fade = setInterval(() => {
+            audio.volume = Math.max(audio.volume - (volume * .01), 0);
+            if (audio.volume === 0.0) {
+                clearInterval(fade);
+                audio.pause();
+                audio.currentTime = 0.0;
+            }
+        }, 20);
+    }
+
+    async function fadeIn(audio, song, targetVolume) {
+        if (!audio.paused) {
+            audio.pause();
+            audio.currentTime = 0.0;
+        }
+        audio.volume = 0;
+        await audio.play();
+
+        let fadeInVolume = 0;
+        let fadeIn = setInterval(() => {
+            audio.volume = Math.min(fadeInVolume += (targetVolume * .01), targetVolume);
+            if (audio.volume >= targetVolume) {
+                audio.volume = targetVolume;
+                clearInterval(fadeIn);
+            }
+        }, 20);
     }
 }

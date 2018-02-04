@@ -601,9 +601,7 @@ export default async function () {
                     }
                 },
                 async bossFightSound() {
-                    if (!audioEngine.getSongsPlaying().includes('bossFight-0')) {
-                        await audioEngine.play('bossFight-0', { type: 'background' });
-                    }
+                    await audioEngine.play('bossFight-0', { type: 'background' });
                 },
                 async updateCurrentAudioZone({ state }) {
                     let localPlayer = state.playersById[state.clientId];
