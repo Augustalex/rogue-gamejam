@@ -141,7 +141,11 @@ function Player({ localStore, store, playerId }) {
             }
             else if (shooting) {
                 if (!player.shooting.timeToShoot) {
-                    player.shooting.timeToShoot = constants.timeToShoot
+                    player.shooting.timeToShoot = constants.timeToShoot;
+                    localStore.dispatch('firePlayerWeapon', {
+                        id: playerId,
+                        direction: player.shooting.direction,
+                    });
                 }
                 let newTimeToShoot = player.shooting.timeToShoot - delta;
                 if (newTimeToShoot <= 0) {
@@ -151,6 +155,18 @@ function Player({ localStore, store, playerId }) {
                         id: playerId,
                         direction: player.shooting.direction,
                     });
+                }
+                localStore.commit('MERGE_PLAYER_SHOOTING', {
+                    id: playerId,
+                    shooting: {
+                        timeToShoot: newTimeToShoot
+                    }
+                });
+            }
+            else {
+                let newTimeToShoot = player.shooting.timeToShoot - delta;
+                if (newTimeToShoot <= 0) {
+                    newTimeToShoot = 0;
                 }
                 localStore.commit('MERGE_PLAYER_SHOOTING', {
                     id: playerId,

@@ -101,14 +101,7 @@ export default async function draw(finalCanvas, finalContext, store, localStore,
         applyBloom(finalContext);
     }
 
-    function drawPlayer(context, {
-        position: { x, y },
-        color,
-        moving,
-        shooting,
-        teleporting,
-        teleportCursor
-    }) {
+    function drawPlayer(context, { position: { x, y }, color, moving, shooting, teleporting, teleportCursor }) {
         if (teleporting) {
             context.beginPath();
             context.arc(x + teleportCursor.x, y + teleportCursor.y, 8, 0, 2 * Math.PI, false);
@@ -123,10 +116,10 @@ export default async function draw(finalCanvas, finalContext, store, localStore,
         }
         let dir = Math.atan2(aimVector.y, aimVector.x);
         if (shadows) {
-            context.globalAlpha = 0.5;
+            // context.globalAlpha = 0.5;
             context.fillStyle = 'black';
-            drawCircle(x, y, 10)
-            context.filter = "none";
+            drawCircle(x, y, 10);
+            // context.filter = "none";
         }
         context.globalAlpha = 1;
         let scale = 2;
@@ -181,6 +174,7 @@ export default async function draw(finalCanvas, finalContext, store, localStore,
     }
 
     function drawCircle(x, y, radius) {
+        context.beginPath();
         context.arc(x, y, radius, 0, 2 * Math.PI);
         context.fill();
     }
