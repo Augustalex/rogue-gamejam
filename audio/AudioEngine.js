@@ -26,6 +26,7 @@ export default function () {
 
                 if (audioState.currentZone.past && !presentDimension && audioState.currentSong !== audioState.currentZone.past) {
                     newSong = audioState.currentZone.past;
+                    args = { volume: .08 }
                 }
                 else if (audioState.currentZone.present && presentDimension && audioState.currentSong !== audioState.currentZone.present) {
                     newSong = audioState.currentZone.present;
