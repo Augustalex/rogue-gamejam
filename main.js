@@ -17,6 +17,7 @@ import worldData from "./mapLoader/worldData2.js";
 
 const { genId, rand255, rHue, rColor } = utils;
 let beamHue = 329;
+let ballHue = 340;
 let hueDir = 1;
 
 export default async function () {
@@ -344,7 +345,8 @@ export default async function () {
                             },
                             isEnemy: true,
                             height: 22,
-                            presentDimension: true
+                            presentDimension: true,
+                            hue: ballHue + Math.random()*40
                         };
                         commit('ADD_ENTITY_BULLET', { id, bullet });
 
@@ -359,6 +361,7 @@ export default async function () {
                 fireBulletCircle({ state, commit }, { id: entityId, x, y }) {
                     let id = entityId;
                     let shots = 400;
+                    let hue = ballHue;
                     for (let directionRad = 0; directionRad < Math.PI * 2; directionRad += (Math.PI * 2) / shots) {
                         let bulletId = genId();
                         let newDirectionX = Math.cos(directionRad);
@@ -375,7 +378,8 @@ export default async function () {
                             },
                             isEnemy: true,
                             height: 22,
-                            presentDimension: true
+                            presentDimension: true,
+                            hue: hue
                         };
                         commit('ADD_ENTITY_BULLET', { id, bullet });
 
@@ -384,7 +388,8 @@ export default async function () {
                             let { x, y } = state.bullets[bulletId];
                             commit('REMOVE_ENTITY_BULLET', { shooterId: id, bulletId });
                             commit('ADD_BURN', { x, y })
-                        }, Math.round(Math.random() * 200) + 5000);
+                        }, Math.round(Math.random() * 200) + 10);
+                        hue += 40 /shots;
                     }
                 },
                 fireMinigunInCircle({ state, commit }, { id: entityId, x, y }) {
@@ -392,23 +397,28 @@ export default async function () {
                     let shots = 100;
                     let directionRad = Math.PI * 2 * Math.random();
                     let startDir = directionRad;
+                    let hue = ballHue;
+                    ballHue += 20;
+                    if (ballHue > 360) {
+                        ballHue = 300;
+                    }
                     let shootFun = () => {
                         let bulletId = genId();
                         let newDirectionX = Math.cos(directionRad);
                         let newDirectionY = Math.sin(directionRad);
-
                         let bullet = {
                             x: x,
                             y: y,
                             id: bulletId,
                             shooterId: null,
                             direction: {
-                                x: newDirectionX * (0.5 + Math.random() * 0.1) * 0.7,
-                                y: newDirectionY * (0.5 + Math.random() * 0.1) * 0.6
+                                x: newDirectionX * (0.5 + Math.random() * 0.1) * 1.3,
+                                y: newDirectionY * (0.5 + Math.random() * 0.1) * 1.2
                             },
                             isEnemy: true,
                             height: 22,
-                            presentDimension: true
+                            presentDimension: true,
+                            hue: hue
                         };
                         commit('ADD_ENTITY_BULLET', { id, bullet });
                         setTimeout(() => {

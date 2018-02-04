@@ -135,10 +135,10 @@ function Boss(storeDependencies, state) {
             if(bullet.presentDimension === store.state.presentDimension){
                 context.beginPath();
                 context.arc(Math.floor(bullet.x), Math.floor(bullet.y), 8, 0, 2 * Math.PI, false);
-                context.fillStyle = '#f7a7d0';
+                context.fillStyle = `hsl(${bullet.hue},100%,70%)`;
                 context.fill();
                 context.lineWidth = 2;
-                context.strokeStyle = '#ba3278';
+                context.strokeStyle = `hsl(${bullet.hue},100%,58%)`;
                 context.stroke();
             }else {
                 context.beginPath();

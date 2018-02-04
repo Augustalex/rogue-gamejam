@@ -3,7 +3,7 @@ export default {
     height: 10528,
     playerSpawn: {
         x: 2300,
-        y: 8200
+        y: 1300
     },
     boss: {
         x: 2300,

@@ -95,7 +95,7 @@ export default function (storeDependencies, entityState) {
         if (!entityState.isMoving) {
             lastTime += delta;
             let timeToShoot = enemyTimeToShoot;
-            if(entityState.health < entityState.maxHealth * 0.70){
+            if (entityState.health < entityState.maxHealth * 0.70) {
                 timeToShoot = circleBulletTimeToShoot;
             }
             if (lastTime > timeToShoot) {
@@ -104,7 +104,7 @@ export default function (storeDependencies, entityState) {
                         localStore.dispatch('fireMinigunInCircle', {
                             id: entityState.id,
                             isEnemy: true,
-                            x: entityState.position.x - Sprites.boss.width*2 /2,
+                            x: entityState.position.x - Sprites.boss.width * 2 / 2,
                             y: entityState.position.y - 80
                         });
                     }
@@ -112,7 +112,7 @@ export default function (storeDependencies, entityState) {
                         localStore.dispatch('fireBulletCircle', {
                             id: entityState.id,
                             isEnemy: true,
-                            x: entityState.position.x - Sprites.boss.width*2 /2,
+                            x: entityState.position.x - 8 / 2,
                             y: entityState.position.y - 80
                         });
                     }
@@ -120,19 +120,28 @@ export default function (storeDependencies, entityState) {
                         localStore.dispatch('fireSmallBlast', {
                             id: entityState.id,
                             isEnemy: true,
-                            x: entityState.position.x - Sprites.boss.width*2 /2,
+                            x: entityState.position.x - 8,
                             y: entityState.position.y - 80
                         });
                     }
 
                 }
                 else {
+                    if (entityState.health < entityState.maxHealth * 0.70) {
+                        localStore.dispatch('fireLaser', {
+                            id: entityState.id,
+                            x: entityState.position.x,
+                            y: entityState.position.y - 80,
+                            targetX: targetPlayerPosition.x + 30 + Math.random() *100,
+                            targetY: targetPlayerPosition.y + 48 + Math.random() *100
+                        });
+                    }
                     localStore.dispatch('fireLaser', {
                         id: entityState.id,
                         x: entityState.position.x,
                         y: entityState.position.y - 80,
                         targetX: targetPlayerPosition.x,
-                        targetY: targetPlayerPosition.y
+                        targetY: targetPlayerPosition.y + 32
                     });
                 }
                 lastTime = 0;
