@@ -1,5 +1,6 @@
 export default {
     character: null,
+    chest: null,
     boss: null,
     bossPast: [],
     async loadResources() {
@@ -8,6 +9,7 @@ export default {
         this.boss = await loadImageAsync('./sprites/boss.png');
         this.bossPast = await loadBossFrames('./sprites/boss_Past.png');
         this.bossPresent = await loadBossFrames('./sprites/boss_Present.png');
+        this.chest = await loadImageAsync('./sprites/chest.png');
     }
 }
 

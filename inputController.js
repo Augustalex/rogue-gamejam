@@ -24,6 +24,7 @@ const keymap = {
     shootRight: ['arrowright', rightStickRight],
     run: ['shift', buttonA],
     changeDimension: ['q'],
+    interact: ['e'],
     teleport: [' '],
 };
 

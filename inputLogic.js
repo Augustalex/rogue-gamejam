@@ -42,6 +42,13 @@ export default function ({ keysDown, wasPressed, wasReleased, keysDown: actionKe
             id: clientId
         });
     }
+    if (wasPressed('interact')) {
+        if (Math.abs(player.position.x - 3208) < 64 &&
+            Math.abs(player.position.y - 8500) < 64) {
+            alert('Bless the RNG!')
+            player.hasTripleBow = true;
+        }
+    }
 
     if (wasPressed('teleport')) {
         store.commit('START_PLAYER_TELEPORTING', {

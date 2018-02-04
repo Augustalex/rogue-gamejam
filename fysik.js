@@ -104,6 +104,37 @@ function Player({ localStore, store, playerId }) {
     const timeBetweenSounds = .2;
     let timeToNextSound = 0;
 
+    function shoot(player) {
+        localStore.dispatch('firePlayerWeapon', {
+            id: playerId,
+            direction: player.shooting.direction,
+        });
+        if (state.hasTripleBow) {
+            let bulletDir = Math.atan2(player.shooting.direction.y, player.shooting.direction.x);
+            localStore.dispatch('firePlayerWeapon', {
+                id: playerId,
+                direction: {
+                    x: Math.cos(bulletDir - Math.PI / 64),
+                    y: Math.sin(bulletDir - Math.PI / 64),
+                },
+            });
+            localStore.dispatch('firePlayerWeapon', {
+                id: playerId,
+                direction: {
+                    x: Math.cos(bulletDir + Math.PI / 64),
+                    y: Math.sin(bulletDir + Math.PI / 64),
+                },
+            });
+            localStore.dispatch('firePlayerWeapon', {
+                id: playerId,
+                direction: {
+                    x: Math.cos(bulletDir + Math.PI / 128),
+                    y: Math.sin(bulletDir + Math.PI / 128),
+                },
+            });
+        }
+    }
+
     return {
         lastPosition,
         currentPosition,
@@ -187,19 +218,13 @@ function Player({ localStore, store, playerId }) {
             else if (shooting) {
                 if (!player.shooting.timeToShoot) {
                     player.shooting.timeToShoot = constants.timeToShoot;
-                    localStore.dispatch('firePlayerWeapon', {
-                        id: playerId,
-                        direction: player.shooting.direction,
-                    });
+                    shoot(player);
                 }
                 let newTimeToShoot = player.shooting.timeToShoot - delta;
                 if (newTimeToShoot <= 0) {
                     let overFlow = -newTimeToShoot;
                     newTimeToShoot = constants.timeToShoot - overFlow;
-                    localStore.dispatch('firePlayerWeapon', {
-                        id: playerId,
-                        direction: player.shooting.direction,
-                    });
+                    shoot(player);
                 }
                 localStore.commit('MERGE_PLAYER_SHOOTING', {
                     id: playerId,

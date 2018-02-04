@@ -55,6 +55,7 @@ export default async function () {
                 x: 0,
                 y: 0
             },
+            hasTripleBow: false,
             health: 100
         }
     };

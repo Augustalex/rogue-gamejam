@@ -63,6 +63,11 @@ export default async function draw({ canvas: finalCanvas, context: finalContext 
     context.imageSmoothingEnabled = false;
 
     // store.state.blood.animateAndDraw(context);
+    context.globalAlpha = 0.3;
+    context.fillStyle = "black";
+    context.fillRect(3214,8504,52,32);
+    context.globalAlpha = 1;
+    context.drawImage(Sprites.chest,3208,8500,64,32);
 
     let players = Object.keys(store.state.playersById).map(key => store.state.playersById[key]);
     for (let player of players) {
