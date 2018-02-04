@@ -4,7 +4,7 @@ import loadSprite from './loadSprite.js';
 import rasterizeLayer from './rasterizeLayer.js';
 
 export default function WorldMaker(worldData) {
-    let { matrixPath, spritePaths, colorToTileId, TileGetters } = worldData;
+    let { matrixPath, spritePaths, colorToTileId, attributesByTileId, TileGetters } = worldData;
     let availableColors = Object.keys(colorToTileId).map(colorString => {
         let [rs, gs, bs] = colorString.split(',');
         return [parseFloat(rs), parseFloat(gs), parseFloat(bs)];
@@ -12,10 +12,7 @@ export default function WorldMaker(worldData) {
 
     return {
         async make() {
-            let matrix = await mapTools.loadToMatrix(matrixPath, availableColors);
-            let sprites = await loadSprites(spritePaths);
-            let tileGetters = TileGetters(sprites);
-            let layer = await createLayer(colorToTileId, tileGetters, matrix);
+            let layer = await this.makeLayer();
             let layerCanvas = rasterizeLayer(layer);
             return layerCanvas;
         },
@@ -23,7 +20,7 @@ export default function WorldMaker(worldData) {
             let matrix = await mapTools.loadToMatrix(matrixPath, availableColors);
             let sprites = await loadSprites(spritePaths);
             let tileGetters = TileGetters(sprites);
-            let layer = await createLayer(colorToTileId, tileGetters, matrix);
+            let layer = await createLayer(colorToTileId, tileGetters, matrix, attributesByTileId);
             return layer;
         }
     };
@@ -42,7 +39,7 @@ async function loadSprites(spritePaths) {
     return sprites;
 }
 
-async function createLayer(colorToTileId, tileGetters, matrix) {
+async function createLayer(colorToTileId, tileGetters, matrix, attributesByTileId) {
     let tileRows = [];
     for (let y = 0; y < matrix.length; y++) {
         let tileRow = [];
@@ -59,9 +56,10 @@ async function createLayer(colorToTileId, tileGetters, matrix) {
             let tileGetter = tileGetters[tileId];
             let tile = tileGetter();
 
-            tileRow.push(tile);
+            let attributes = attributesByTileId[tileId] || {};
+            tileRow.push({ tile, ...attributes });
         }
         tileRows.push(tileRow);
     }
-    return tileRows;
+    return { layer: tileRows, tileWidth: 32, tileHeight: 32 };
 }

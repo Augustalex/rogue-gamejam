@@ -59,8 +59,11 @@ export default function (storeDependencies, entityState) {
 
             let player = store.state.playersById[playerId];
             let dist = Math.sqrt(Math.pow(player.position.x - entityState.position.x, 2) + Math.pow(player.position.y - entityState.position.y, 2));
-            if (dist < 800) {
-                playerInRange = true;
+            if (dist < 1500) {
+                localStore.dispatch('bossFightSound');
+                if (dist < 800) {
+                    playerInRange = true;
+                }
             }
         }
         entityState.playerInRange = playerInRange;
@@ -69,7 +72,7 @@ export default function (storeDependencies, entityState) {
 
         timeSinceLastAction += delta;
         if (entityState.controllerId === localStore.state.clientId) {
-            if(timeSinceLastAction > 2 ){
+            if (timeSinceLastAction > 2) {
                 if (!entityState.isMoving) {
                     entityState.isMoving = true;
                     move();

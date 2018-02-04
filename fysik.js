@@ -100,6 +100,9 @@ function Player({ localStore, store, playerId }) {
     let lastPosition = { x: state.position.x, y: state.position.y };
     let currentPosition = { x: state.position.x, y: state.position.y };
 
+    const timeBetweenSounds = 1;
+    let timeToNextSound = 0;
+
     return {
         lastPosition,
         currentPosition,
@@ -125,11 +128,42 @@ function Player({ localStore, store, playerId }) {
                 speed /= 2;
             }
 
+            let moving = false;
             if (player.moving && player.moving.x) {
+                moving = true;
                 x += speed * delta * player.moving.x
             }
             if (player.moving && player.moving.y) {
+                moving = true;
                 y += speed * delta * player.moving.y
+            }
+
+            if (moving) {
+                if (timeToNextSound <= 0) {
+                    console.log('sound');
+                    store.dispatch('playerMoveSound', { id: playerId, x, y });
+                    timeToNextSound = timeBetweenSounds;                }
+                else {
+                    timeToNextSound -= delta;
+                }
+            }
+            else {
+                timeToNextSound = 0;
+            }
+
+            let tileWidth = store.state.worldLayer.tileWidth;
+            let layerPosX = Math.floor(x / tileWidth);
+            let tileHeight = store.state.worldLayer.tileHeight;
+            let layerPosY = Math.floor(y / tileHeight);
+            let layerRealX = layerPosX * tileWidth;
+            let layerRealY = layerPosY * tileHeight;
+            let layer = store.state.worldLayer.layer;
+            if (layer[layerPosY][layerPosX].steep) {
+                if (x > layerRealX && x < layerRealX + tileWidth
+                    && y > layerRealY && y < layerRealY + tileHeight) {
+                    console.log('player fell to their death');
+                    store.dispatch('playerFall', { id: playerId, x, y });
+                }
             }
 
             currentPosition.x = x;

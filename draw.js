@@ -1,6 +1,4 @@
 import Sprites from './sprites.js';
-import worldData from './mapLoader/worldData2.js';
-import WorldMaker from './mapLoader/WorldMaker.js';
 
 var backgroundImage = new Image();
 backgroundImage.src = './sprites/sprite_Tile_Edge.png';
@@ -22,23 +20,30 @@ setInterval(() => {
 
 let vignetteCanvas = null;
 let first = true;
-let worldMaker = WorldMaker(worldData);
-let worldLayer = null;
 
-export default async function draw(finalCanvas, finalContext, store, localStore, clientId) {
+let previousClientPosition = null;
+
+export default async function draw({ canvas: finalCanvas, context: finalContext }, { store, localStore, clientId }) {
+    // var t0 = performance.now();
     if (first) {
         first = false;
         heavyBrickLefts = await loadHeavyBricks('Left');
         heavyBrickRights = await loadHeavyBricks('Right');
         await Sprites.loadResources();
-        worldLayer = await worldMaker.makeLayer();
     }
+    let worldLayer = store.state.worldLayer.layer;
 
     let zoom = 1;
     let clientPlayer = store.state.playersById[store.state.clientId];
+    let clientPlayerPosition = clientPlayer && clientPlayer.position;
+    if (!clientPlayer && previousClientPosition) {
+        clientPlayerPosition = previousClientPosition;
+    }
+    previousClientPosition = clientPlayerPosition;
+
     let camera = {
-        x: Math.round(clientPlayer.position.x - (finalCanvas.width / zoom) * .5),
-        y: Math.round(clientPlayer.position.y - (finalCanvas.height / zoom) * .5),
+        x: Math.round(clientPlayerPosition.x - (finalCanvas.width / zoom) * .5),
+        y: Math.round(clientPlayerPosition.y - (finalCanvas.height / zoom) * .5),
         w: finalCanvas.width,
         h: finalCanvas.height
     };
@@ -88,7 +93,7 @@ export default async function draw(finalCanvas, finalContext, store, localStore,
     for (let y = 0; y < worldLayer.length; y++) {
         let tileY = y * tileHeight;
         for (let x = 0; x < worldLayer[y].length; x++) {
-            let tile = worldLayer[y][x];
+            let { tile } = worldLayer[y][x];
             if (!tile) continue;
             let tileX = x * tileWidth;
             if (tileX > camera.x + camera.w || tileX + tileWidth < camera.x
@@ -113,6 +118,9 @@ export default async function draw(finalCanvas, finalContext, store, localStore,
             applyBloom(finalContext, finalCanvas);
         }
     }
+
+    // var t1 = performance.now();
+    // console.log("Call to Draw.js took " + (t1 - t0) + " milliseconds.")
 }
 
 function drawPlayer(context, { position: { x, y }, color, moving, shooting, teleporting, teleportCursor, id }, camera) {

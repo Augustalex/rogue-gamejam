@@ -12,12 +12,14 @@ import utils from './utils.js';
 import Enemy from './enemy/Enemy.js';
 import Boss from './enemy/Boss.js';
 import EnemyFactory from './enemy/EnemyFactory.js';
+import WorldMaker from "./mapLoader/WorldMaker.js";
+import worldData from "./mapLoader/worldData2.js";
 
 const { genId, rand255, rHue, rColor } = utils;
 let beamHue = 329;
 let hueDir = 1;
 
-export default function () {
+export default async function () {
     let socket = io.connect(`${window.location.hostname}:3032`);
     console.log(window.location.hostname);
     //let socket = io.connect('http://192.168.1.106:3032');
@@ -25,8 +27,11 @@ export default function () {
     const clientId = `${rand255()}${rand255()}`;
     console.log('clientId: ', clientId);
 
+    let worldMaker = WorldMaker(worldData);
+    let worldLayer = await worldMaker.makeLayer();
+
     let audioEngine = AudioEngine();
-    audioEngine.play('background-0', { volume: .2 });
+    await audioEngine.play('background-1', { volume: .8, type: 'background' });
     audioEngine.play('wind', { volume: .4 });
 
     const createOwnPlayer = () => {
@@ -37,7 +42,7 @@ export default function () {
                 y: World.playerSpawn.y,
             },
             color,
-            speed: 300,
+            speed: 116,
             shooting: {
                 direction: {
                     x: 0,
@@ -55,6 +60,7 @@ export default function () {
     let localStore = Store({
         store: {
             state: {
+                worldLayer,
                 clientId,
                 //TODO should be called "entityById"
                 entitiesById: {},
@@ -235,6 +241,24 @@ export default function () {
                         commit('ADD_BLOOD', { x, y })
                     }
                 },
+                playerFall({ state, commit, dispatch }, { id, x, y }) {
+                    commit('SET_PLAYER_POS', { id, x, y });
+                    audioEngine.play('playerFall2');
+                    setTimeout(() => {
+                        audioEngine.play('playerFall3', { volume: .2 });
+                        audioEngine.play('playerFall');
+                    }, 200);
+                    dispatch('killPlayer', id);
+                },
+                playerMoveSound({}, { id, x, y }) {
+                    let sounds = [
+                        'playerStep1',
+                        'playerStep2',
+                        'playerStep3'
+                    ];
+                    let sound = sounds[Math.round(Math.random() * (sounds.length - 1))];
+                    audioEngine.play(sound, { volume: .2 });
+                },
                 playerShot({ state, dispatch, commit }, { id: playerId, damage }) {
                     if (state.playersById[playerId]) {
                         let { x, y, health } = state.playersById[playerId];
@@ -392,6 +416,11 @@ export default function () {
                             commit('ADD_BURN', { x, y })
                         }, Math.round(Math.random() * 200) + 5000);
                     }
+                },
+                async bossFightSound() {
+                    if (!audioEngine.getSongsPlaying().includes('bossFight-0')) {
+                        await audioEngine.play('bossFight-0', { type: 'background' });
+                    }
                 }
             }
         }
@@ -427,7 +456,7 @@ export default function () {
         inputController.updateInput(inputHookDependencies);
         // input(store, clientId);
         fysik(localStore, store, delta);
-        await draw(canvas, context, store, localStore, clientId);
+        await draw({ canvas, context }, { store, localStore, clientId });
 
         gc();
         if (!respawning && store.state.localPlayerDead) {

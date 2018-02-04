@@ -17,6 +17,11 @@ export default {
         '41,33,58': 'tileEdgeBottom',
         '0,0,0': 'transparent'
     },
+    attributesByTileId: {
+        'transparent': {
+            steep: true
+        }
+    },
     TileGetters: (sprites) => ({
         brick() {
             let tiles = sprites.bricks.tiles;
