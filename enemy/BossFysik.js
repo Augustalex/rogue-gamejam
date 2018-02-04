@@ -1,4 +1,7 @@
+import Sprites from '../sprites.js';
+
 const enemyTimeToShoot = 1;
+const circleBulletTimeToShoot = 2;
 
 export default function (storeDependencies, entityState) {
     let { localStore, store } = storeDependencies;
@@ -91,14 +94,37 @@ export default function (storeDependencies, entityState) {
 
         if (!entityState.isMoving) {
             lastTime += delta;
-            if (lastTime > enemyTimeToShoot) {
+            let timeToShoot = enemyTimeToShoot;
+            if(entityState.health < entityState.maxHealth * 0.70){
+                timeToShoot = circleBulletTimeToShoot;
+            }
+            if (lastTime > timeToShoot) {
                 if (store.state.presentDimension) {
-                    localStore.dispatch('fireEnemyWeapon', {
-                        id: entityState.id,
-                        isEnemy: true,
-                        x: entityState.position.x,
-                        y: entityState.position.y - 80
-                    });
+                    if (entityState.health < entityState.maxHealth * 0.30) {
+                        localStore.dispatch('fireMinigunInCircle', {
+                            id: entityState.id,
+                            isEnemy: true,
+                            x: entityState.position.x - Sprites.boss.width*2 /2,
+                            y: entityState.position.y - 80
+                        });
+                    }
+                    else if (entityState.health < entityState.maxHealth * 0.70) {
+                        localStore.dispatch('fireBulletCircle', {
+                            id: entityState.id,
+                            isEnemy: true,
+                            x: entityState.position.x - Sprites.boss.width*2 /2,
+                            y: entityState.position.y - 80
+                        });
+                    }
+                    else {
+                        localStore.dispatch('fireSmallBlast', {
+                            id: entityState.id,
+                            isEnemy: true,
+                            x: entityState.position.x - Sprites.boss.width*2 /2,
+                            y: entityState.position.y - 80
+                        });
+                    }
+
                 }
                 else {
                     localStore.dispatch('fireLaser', {

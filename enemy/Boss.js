@@ -44,11 +44,14 @@ function Boss(storeDependencies, state) {
             state.health = health;
         },
         render({ context, canvas, camera }) {
+            let bullets = Object.keys(store.state.bulletsByShooterId[id]).map(bulletId => store.state.bulletsByShooterId[id][bulletId])
             if (state.position.x > camera.x + camera.w || state.position.x < camera.x
                 || state.position.y > camera.y + camera.h || state.position.y < camera.y) {
+                for (let bullet of bullets) {
+                    drawBullet(context, bullet, color);
+                }
                 return;
             }
-            let bullets = Object.keys(store.state.bulletsByShooterId[id]).map(bulletId => store.state.bulletsByShooterId[id][bulletId])
             let behindBoss = bullets.filter(b => b.y <= state.position.y - 80); // todo make variable shoot offset and use in fysik
             let inFrontOffBoss = bullets.filter(b => b.y > state.position.y - 80); // todo make variable shoot offset and use in fysik
             for (let bullet of behindBoss) {
@@ -76,7 +79,7 @@ function Boss(storeDependencies, state) {
 
             if (state.playerInRange) {
                 drawHealthBar(context, canvas, camera, state);
-                drawTitle(context, canvas, camera, state);
+                drawTitle(context, canvas, camera);
             }
         },
         fysik(delta) {
@@ -89,7 +92,7 @@ function Boss(storeDependencies, state) {
         }
     };
 
-    function drawHealthBar(context, canvas, camera, state) {
+    function drawHealthBar(context, canvas, camera) {
         let inset = 64;
         context.fillStyle = 'white';
         context.globalAlpha = 0.15;
@@ -100,7 +103,7 @@ function Boss(storeDependencies, state) {
         context.fillRect(camera.x + inset, camera.y + camera.h - inset / 2 - height, (canvas.width - inset * 2) * multiPlyer, height);
     }
 
-    function drawTitle(context, canvas, camera, state) {
+    function drawTitle(context, canvas, camera) {
         context.fillStyle = 'white';
         context.textAlign = 'center';
         context.font = '22px sans serif';
@@ -111,6 +114,41 @@ function Boss(storeDependencies, state) {
         context.fillRect(camera.x + camera.w / 2 - w, camera.y + 80, w * 2, 2);
         context.globalAlpha = 1;
         context.fillText('Jättegammel sten monster', camera.x + camera.w / 2, camera.y + 60);
+    }
+
+    function drawBullet(context, bullet, color) {
+        if (bullet.isLaser) {
+            let dir = Math.atan2(bullet.direction.y, bullet.direction.x);
+            context.fillStyle = `hsl(${bullet.hue},${sat}%,80%)`;
+            fillRectRot(context, bullet.x, bullet.y, 32, 16, dir);
+        }
+        else {
+            if (options.useShadows) {
+                context.beginPath();
+                context.arc(Math.floor(bullet.x), Math.floor(bullet.y + bullet.height / 1.1 + 1), 8 + bullet.height / 4, 0, 2 * Math.PI, false);
+                context.fillStyle = 'black';
+                context.globalAlpha = Math.max(1.1 - bullet.height / 22, 0);
+                context.fill();
+                context.globalAlpha = 1;
+            }
+
+            if(bullet.presentDimension === store.state.presentDimension){
+                context.beginPath();
+                context.arc(Math.floor(bullet.x), Math.floor(bullet.y), 8, 0, 2 * Math.PI, false);
+                context.fillStyle = '#f7a7d0';
+                context.fill();
+                context.lineWidth = 2;
+                context.strokeStyle = '#ba3278';
+                context.stroke();
+            }else {
+                context.beginPath();
+                context.arc(Math.floor(bullet.x), Math.floor(bullet.y), 8, 0, 2 * Math.PI, false);
+                context.globalAlpha = 0.5;
+                context.fillStyle = '#442f33';
+                context.fill();
+                context.globalAlpha = 1;
+            }
+        }
     }
 };
 Boss.createState = function ({ controllerId, x, y }) {
@@ -138,31 +176,7 @@ export default Boss;
 
 let sat = 50;
 
-function drawBullet(context, bullet, color) {
-    if (bullet.isLaser) {
-        let dir = Math.atan2(bullet.direction.y, bullet.direction.x);
-        context.fillStyle = `hsl(${bullet.hue},${sat}%,80%)`;
-        fillRectRot(context, bullet.x, bullet.y, 32, 16, dir);
-    }
-    else {
-        if (options.useShadows) {
-            context.beginPath();
-            context.arc(Math.floor(bullet.x), Math.floor(bullet.y + bullet.height / 1.1 + 1), 8 + bullet.height / 4, 0, 2 * Math.PI, false);
-            context.fillStyle = 'black';
-            context.globalAlpha = Math.max(1.1 - bullet.height / 22, 0);
-            context.fill();
-            context.globalAlpha = 1;
-        }
 
-        context.beginPath();
-        context.arc(Math.floor(bullet.x), Math.floor(bullet.y), 8, 0, 2 * Math.PI, false);
-        context.fillStyle = '#f7a7d0';
-        context.fill();
-        context.lineWidth = 2;
-        context.strokeStyle = '#ba3278';
-        context.stroke();
-    }
-}
 
 function fillRectRot(context, x, y, width, height, dir) {
     context.save();

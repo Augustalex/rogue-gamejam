@@ -2,6 +2,7 @@ import Sprites from './sprites.js';
 
 const constants = {
     bulletSpeed: 1000,
+    enemyBulletSpeed: 500,
     timeToShoot: .5,
     enemyTimeToShoot: 30,
     playerSize: 10,
@@ -318,8 +319,8 @@ function bulletFysik({ store, localStore }, delta) {
                 }
             }
             let newPos = {
-                x: bullet.x + bullet.direction.x * constants.bulletSpeed * delta,
-                y: bullet.y + bullet.direction.y * constants.bulletSpeed * delta
+                x: bullet.x + bullet.direction.x * constants.enemyBulletSpeed * delta,
+                y: bullet.y + bullet.direction.y * constants.enemyBulletSpeed * delta
             };
             if (constants.fallingBullets) {
                 newPos.y += constants.bulletGravity * delta;
@@ -334,6 +335,7 @@ function bulletFysik({ store, localStore }, delta) {
             let collidableObjects = Object.keys(playerObjectsById).map(k => playerObjectsById[k]);
             for (let collidable of collidableObjects) {
                 if (collidable.id === bullet.shooterId) continue;
+                if(bullet.presentDimension !== store.state.presentDimension) continue;
 
                 let x = collidable.currentPosition.x;
                 let y = collidable.currentPosition.y;

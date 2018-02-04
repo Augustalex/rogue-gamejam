@@ -295,7 +295,7 @@ export default async function () {
                     let newDirectionY = Math.sin(newDirectionRad);
                     let shootDir = Math.atan2(player.shooting.direction.y, player.shooting.direction.x);
                     let gunPosX = player.position.x + Math.cos(shootDir + Math.PI / 4) * 9;
-                    let gunPosY = player.position.y + Math.sin(shootDir + Math.PI / 4) * 9;
+                    let gunPosY = player.position.y - 64 + Math.sin(shootDir + Math.PI / 4) * 9;
 
                     let bullet = {
                         x: gunPosX,
@@ -320,10 +320,9 @@ export default async function () {
                         commit('ADD_BURN', { x, y });
                     }, Math.round(Math.random() * 200) + 1000);
                 },
-                fireEnemyWeapon({ state, commit }, { id: entityId, x, y }) {
+                fireSmallBlast({ state, commit }, { id: entityId, x, y }) {
                     let id = entityId;
                     let entity = state.entitiesById[entityId];
-                    let shadowDimension = Math.random() > 0.5;
                     let shots = 15 + Math.round(Math.random() * 2);
                     let randomPlayerId = Object.keys(state.playersById)[0];
                     let player = state.playersById[randomPlayerId];
@@ -345,7 +344,7 @@ export default async function () {
                             },
                             isEnemy: true,
                             height: 22,
-                            shadowDimension: shadowDimension
+                            presentDimension: true
                         };
                         commit('ADD_ENTITY_BULLET', { id, bullet });
 
@@ -356,6 +355,76 @@ export default async function () {
                             commit('ADD_BURN', { x, y })
                         }, Math.round(Math.random() * 200) + 5000);
                     }
+                },
+                fireBulletCircle({ state, commit }, { id: entityId, x, y }) {
+                    let id = entityId;
+                    let shots = 400;
+                    for (let directionRad = 0; directionRad < Math.PI * 2; directionRad += (Math.PI * 2) / shots) {
+                        let bulletId = genId();
+                        let newDirectionX = Math.cos(directionRad);
+                        let newDirectionY = Math.sin(directionRad);
+
+                        let bullet = {
+                            x: x,
+                            y: y,
+                            id: bulletId,
+                            shooterId: null,
+                            direction: {
+                                x: newDirectionX * (0.5 + Math.random() * 0.1) * 0.7,
+                                y: newDirectionY * (0.5 + Math.random() * 0.1) * 0.7
+                            },
+                            isEnemy: true,
+                            height: 22,
+                            presentDimension: true
+                        };
+                        commit('ADD_ENTITY_BULLET', { id, bullet });
+
+                        setTimeout(() => {
+                            if (!state.bullets[bulletId]) return;
+                            let { x, y } = state.bullets[bulletId];
+                            commit('REMOVE_ENTITY_BULLET', { shooterId: id, bulletId });
+                            commit('ADD_BURN', { x, y })
+                        }, Math.round(Math.random() * 200) + 5000);
+                    }
+                },
+                fireMinigunInCircle({ state, commit }, { id: entityId, x, y }) {
+                    let id = entityId;
+                    let shots = 100;
+                    let directionRad = Math.PI * 2 * Math.random();
+                    let startDir = directionRad;
+                    let shootFun = () => {
+                        let bulletId = genId();
+                        let newDirectionX = Math.cos(directionRad);
+                        let newDirectionY = Math.sin(directionRad);
+
+                        let bullet = {
+                            x: x,
+                            y: y,
+                            id: bulletId,
+                            shooterId: null,
+                            direction: {
+                                x: newDirectionX * (0.5 + Math.random() * 0.1) * 0.7,
+                                y: newDirectionY * (0.5 + Math.random() * 0.1) * 0.6
+                            },
+                            isEnemy: true,
+                            height: 22,
+                            presentDimension: true
+                        };
+                        commit('ADD_ENTITY_BULLET', { id, bullet });
+                        setTimeout(() => {
+                            if (!state.bullets[bulletId]) return;
+                            let { x, y } = state.bullets[bulletId];
+                            commit('REMOVE_ENTITY_BULLET', { shooterId: id, bulletId });
+                            commit('ADD_BURN', { x, y })
+                        }, Math.round(Math.random() * 200) + 5000);
+                        directionRad += Math.PI / shots;
+                        if (directionRad < startDir + Math.PI * 2) {
+                            setTimeout(() => {
+                                shootFun();
+                            }, 50);
+                        }
+                    };
+                    shootFun();
                 },
                 createEnemy({ state, commit }, enemyState) {
                     let enemy = Enemy({ store, localStore }, enemyState);
@@ -405,7 +474,7 @@ export default async function () {
                             isLaser: true,
                             height: 22,
                             hue: beamHue,
-                            shadowDimension: true
+                            presentDimension: false
                         };
                         commit('ADD_ENTITY_BULLET', { id, bullet });
 
