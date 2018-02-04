@@ -18,13 +18,23 @@ export default function () {
             if (!loadedSongs[song]) {
                 loadedSongs[song] = audio;
             }
+            if (!audio.paused) {
+                audio.pause();
+                audio.currentTime = 0.0;
+            }
             audio.volume = volume;
             if (type === 'background') {
                 if (songsPlaying.length) {
                     songsPlaying.forEach(s => {
                         let playingSong = loadedSongs[s];
-                        playingSong.pause();
-                        playingSong.currentTime = 0.0;
+                        let fade = setInterval(() => {
+                            playingSong.volume = Math.max(playingSong.volume - 0.01, 0);
+                            if (playingSong.volume === 0.0) {
+                                clearInterval(fade);
+                                playingSong.pause();
+                                playingSong.currentTime = 0.0;
+                            }
+                        }, 200);
                     });
                 }
 

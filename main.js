@@ -282,7 +282,7 @@ export default async function () {
                         'playerStep6'
                     ];
                     let sound = sounds[Math.round(Math.random() * (sounds.length - 1))];
-                    audioEngine.play(sound, { volume: .04 });
+                    audioEngine.play(sound, { volume: .02 });
                 },
                 playerShot({ state, dispatch, commit }, { id: playerId, damage }) {
                     if (state.playersById[playerId]) {

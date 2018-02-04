@@ -173,7 +173,8 @@ function Player({ localStore, store, playerId }) {
             if (moving) {
                 if (timeToNextSound <= 0) {
                     store.dispatch('playerMoveSound', { id: playerId, x, y });
-                    timeToNextSound = .7 - player.moving * .25 + Math.random() * .01;
+                    let speedMultiplier = (player.moving.x > 1 || player.moving.y > 1) ? .6 : 1;
+                    timeToNextSound = speedMultiplier + Math.random() * .01;
                 }
                 else {
                     timeToNextSound -= delta;
