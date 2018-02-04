@@ -43,8 +43,8 @@ export default function ({ keysDown, wasPressed, wasReleased, keysDown: actionKe
         });
     }
     if (wasPressed('interact')) {
-        if (Math.abs(player.position.x - 3208) < 64 &&
-            Math.abs(player.position.y - 8500) < 64) {
+        if (Math.abs(player.position.x - 346) < 64 &&
+            Math.abs(player.position.y - 6551) < 64) {
             alert('Bless the RNG!')
             player.hasTripleBow = true;
         }
