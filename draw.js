@@ -22,6 +22,7 @@ let vignetteCanvas = null;
 let first = true;
 
 let previousClientPosition = null;
+let rain = null
 
 export default async function draw({ canvas: finalCanvas, context: finalContext }, { store, localStore, clientId }) {
     // var t0 = performance.now();
@@ -30,6 +31,7 @@ export default async function draw({ canvas: finalCanvas, context: finalContext 
         heavyBrickLefts = await loadHeavyBricks('Left');
         heavyBrickRights = await loadHeavyBricks('Right');
         await Sprites.loadResources();
+        rain = Rain(finalCanvas, finalContext);
     }
     let worldLayer = store.state.worldLayer.layer;
 
@@ -65,9 +67,9 @@ export default async function draw({ canvas: finalCanvas, context: finalContext 
     // store.state.blood.animateAndDraw(context);
     context.globalAlpha = 0.3;
     context.fillStyle = "black";
-    context.fillRect(351,6555,52,32);
+    context.fillRect(351, 6555, 52, 32);
     context.globalAlpha = 1;
-    context.drawImage(Sprites.chest,346,6551,64,32);
+    context.drawImage(Sprites.chest, 346, 6551, 64, 32);
 
     let players = Object.keys(store.state.playersById).map(key => store.state.playersById[key]);
     for (let player of players) {
@@ -89,8 +91,8 @@ export default async function draw({ canvas: finalCanvas, context: finalContext 
     // context.globalAlpha = 1;
 
     //Final draw to the visible canvas (the camera)
-    // finalContext.fillStyle = "#2C2E33";
-    finalContext.fillStyle = "#77b3e0";
+    finalContext.fillStyle = "#2C2E33";
+    // finalContext.fillStyle = "#77b3e0";
     finalContext.imageSmoothingEnabled = false;
     finalContext.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
 
@@ -115,6 +117,9 @@ export default async function draw({ canvas: finalCanvas, context: finalContext 
     }
 
     finalContext.drawImage(preRenderSurface, 0, 0, finalCanvas.width, finalCanvas.height);
+    if (!localStore.state.presentDimension) {
+        rain.draw();
+    }
 
     if (vignetteCanvas && !store.state.localPlayerDead) {
         applyVignette(store, clientId, finalCanvas, finalContext);
@@ -267,4 +272,58 @@ function applyVignette(store, clientId, finalCanvas, finalContext) {
     vignetteContext.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
     finalContext.drawImage(vignetteCanvas, 0, 0, finalCanvas.width, finalCanvas.height);
     finalContext.globalAlpha = 1;
+}
+
+function Rain(canvas, context) {
+    var w = canvas.width;
+    var h = canvas.height;
+    context.strokeStyle = 'rgba(174,194,224,0.5)';
+    context.lineWidth = 1;
+    context.lineCap = 'round';
+
+    var init = [];
+    var maxParts = 1000;
+    for (var a = 0; a < maxParts; a++) {
+        init.push({
+            x: Math.random() * w,
+            y: Math.random() * h,
+            l: Math.random() * 1,
+            xs: -4 + Math.random() + 2,
+            ys: Math.random() * 10 + 10
+        })
+    }
+
+    var particles = [];
+    for (var b = 0; b < maxParts; b++) {
+        particles[b] = init[b];
+    }
+
+    return {
+        draw
+    };
+
+    function draw() {
+        // context.clearRect(0, 0, w, h);
+        for (var c = 0; c < particles.length; c++) {
+            var p = particles[c];
+            context.beginPath();
+            context.lineWidth = 5;
+            context.moveTo(p.x, p.y);
+            context.lineTo(p.x + p.l * p.xs, p.y + p.l * p.ys);
+            context.stroke();
+        }
+        move();
+    }
+
+    function move() {
+        for (var b = 0; b < particles.length; b++) {
+            var p = particles[b];
+            p.x += p.xs;
+            p.y += p.ys;
+            if (p.x > w || p.y > h) {
+                p.x = Math.random() * w;
+                p.y = -20;
+            }
+        }
+    }
 }

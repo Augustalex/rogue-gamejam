@@ -41,6 +41,12 @@ export default {
         '255,225,0': 'background-1',
         '255,255,255': 'wind'
     },
+    attributesByAudioName: {
+        wind: {
+            present: 'wind',
+            past: 'rain'
+        }
+    },
     attributesByTileId: {
         'transparent': {
             steep: true

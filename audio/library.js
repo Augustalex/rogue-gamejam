@@ -4,6 +4,7 @@ export default {
     "bossFight-0": "dumdumdummixedMasteredN.ogg",
     "arrow": "XbowV5.wav",
     "wind": "VindloopFinal.wav",
+    "rain": "rain.ogg",
     "playerFall": "XbowV5SN.ogg",
     "playerFall2": "Movement2Heim.ogg",
     "playerFall3": "UH.wav",

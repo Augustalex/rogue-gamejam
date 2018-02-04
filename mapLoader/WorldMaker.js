@@ -11,7 +11,8 @@ export default function WorldMaker(worldData) {
         colorToTileId,
         attributesByTileId,
         colorToAudioName,
-        TileGetters
+        TileGetters,
+        attributesByAudioName
     } = worldData;
     let availableColors = Object.keys(colorToTileId).map(colorString => {
         let [rs, gs, bs] = colorString.split(',');
@@ -43,7 +44,8 @@ export default function WorldMaker(worldData) {
                 matrix,
                 attributesByTileId,
                 audioMap,
-                colorToAudioName
+                colorToAudioName,
+                attributesByAudioName
             });
             return { layer, tileWidth, tileHeight, tileGetters };
         }
@@ -63,7 +65,7 @@ async function loadSprites(spritePaths) {
     return sprites;
 }
 
-async function createLayer({ colorToTileId, tileGetters, matrix, attributesByTileId, colorToAudioName, audioMap }) {
+async function createLayer({ colorToTileId, tileGetters, matrix, attributesByTileId, colorToAudioName, attributesByAudioName, audioMap }) {
     let tileRows = [];
     for (let y = 0; y < matrix.length; y++) {
         let tileRow = [];
@@ -89,9 +91,11 @@ async function createLayer({ colorToTileId, tileGetters, matrix, attributesByTil
             if (audioMap) {
                 let audioColor = audioMap[y][x];
                 if (audioColor) {
-                    audioZone = {
-                        audioName: colorToAudioName[audioColor]
-                    };
+                    let audioName = colorToAudioName[audioColor];
+                    audioZone = { audioName };
+                    if (attributesByAudioName && attributesByAudioName[audioName]) {
+                        Object.assign(audioZone, attributesByAudioName[audioName]);
+                    }
                 }
             }
             tileRow.push({ tile, ...attributes, presentTile, audioZone });

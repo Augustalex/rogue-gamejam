@@ -6,7 +6,8 @@ export default function () {
 
     let songsPlaying = [];
 
-    let currentAudio = null;
+    let currentAudioZone = { audioName: 'wind' };
+    let currentAudioZoneSong = 'wind';
 
     return {
         getSongsPlaying: () => songsPlaying,
@@ -14,6 +15,7 @@ export default function () {
             loadedSongs = new Audio(`./audio/${library[song]}`);
         },
         async play(song, { type = 'ambient', volume = 1 } = {}) {
+            console.log('play', song);
             let audio = loadedSongs[song] || new Audio(`./audio/${library[song]}`);
             if (!loadedSongs[song]) {
                 loadedSongs[song] = audio;
@@ -22,12 +24,23 @@ export default function () {
                 audio.pause();
                 audio.currentTime = 0.0;
             }
-            audio.volume = volume;
+            let audioLoop = () => {
+                if (currentAudioZoneSong === song) {
+                    audio.currentTime = 0;
+                    audio.play();
+                }
+                else {
+                    audio.removeEventListener('ended', audioLoop);
+                }
+            };
+            audio.addEventListener('ended', audioLoop);
+
             if (type === 'background') {
                 if (songsPlaying.length) {
                     songsPlaying.forEach(s => {
                         let playingSong = loadedSongs[s];
                         let fade = setInterval(() => {
+                            console.log('fade');
                             playingSong.volume = Math.max(playingSong.volume - 0.01, 0);
                             if (playingSong.volume === 0.0) {
                                 clearInterval(fade);
@@ -46,23 +59,42 @@ export default function () {
                     }
                 });
             }
-            try {
-                await audio.play();
+
+            if (type === 'background') {
+                let fadeInVolume = 0;
+                audio.volume = 0;
+                let fadeIn = setInterval(() => {
+                    audio.volume = Math.min(fadeInVolume += .01, volume);
+                    if (audio.volume === volume) {
+                        console.log('faded in');
+                        clearInterval(fadeIn);
+                    }
+                }, 200);
             }
-            catch (ex) {
-                setTimeout(async () => {
-                    await audio.play();
-                });
+            else {
+                audio.volume = volume;
             }
+            await audio.play();
         },
-        async changeSongIfNewZone({ layer, tileWidth, tileHeight }, { x, y }) {
+        async changeSongIfNewZone({ layer, tileWidth, tileHeight }, { x, y, presentDimension }) {
             let layerPosX = Math.floor(x / tileWidth);
             let layerPosY = Math.floor(y / tileHeight);
             let audioZone = layer[layerPosY][layerPosX].audioZone;
             if (audioZone) {
-                if (currentAudio !== audioZone.audioName) {
-                    currentAudio = audioZone.audioName;
-                    await this.play(currentAudio, { type: 'background', volume: .5 });
+                if (currentAudioZone.audioName !== audioZone.audioName) {
+                    currentAudioZone = { ...audioZone };
+                    currentAudioZoneSong = currentAudioZone.audioName;
+                    await this.play(currentAudioZone.audioName, { type: 'background', volume: .5 });
+                }
+
+                if (currentAudioZone.past && !presentDimension && currentAudioZoneSong !== currentAudioZone.past) {
+                    currentAudioZoneSong = currentAudioZone.past;
+                    console.log('play past');
+                    await this.play(currentAudioZone.past, { type: 'background', volume: .2 });
+                }
+                else if (currentAudioZone.present && presentDimension && currentAudioZoneSong !== currentAudioZone.present) {
+                    currentAudioZoneSong = currentAudioZone.present;
+                    await this.play(currentAudioZone.present, { type: 'background', volume: .2 });
                 }
             }
         }

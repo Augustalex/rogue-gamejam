@@ -31,10 +31,7 @@ export default async function () {
 
     let worldMaker = WorldMaker(worldData);
     let worldLayer = await worldMaker.makeLayer();
-
     let audioEngine = AudioEngine();
-    // await audioEngine.play('background-1', { volume: .8, type: 'background' });
-    // audioEngine.play('wind', { volume: .4 });
 
     const createOwnPlayer = () => {
         return {
@@ -612,7 +609,8 @@ export default async function () {
                     let localPlayer = state.playersById[state.clientId];
                     await audioEngine.changeSongIfNewZone(state.worldLayer, {
                         x: localPlayer.position.x,
-                        y: localPlayer.position.y
+                        y: localPlayer.position.y,
+                        presentDimension: state.presentDimension
                     })
                 }
             }
@@ -659,7 +657,7 @@ export default async function () {
         let delta = ((time - lastTime) * .001) || .16;
         lastTime = time;
         inputController.updateInput(inputHookDependencies);
-        // input(store, clientId);
+
         fysik(localStore, store, delta);
         await draw({ canvas, context }, { store, localStore, clientId });
 
