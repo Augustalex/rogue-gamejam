@@ -20,8 +20,8 @@ export default function WorldMaker(worldData) {
             let matrix = await mapTools.loadToMatrix(matrixPath, availableColors);
             let sprites = await loadSprites(spritePaths);
             let tileGetters = TileGetters(sprites);
-            let layer = await createLayer(colorToTileId, tileGetters, matrix, attributesByTileId);
-            return layer;
+            let { layer, tileWidth, tileHeight } = await createLayer(colorToTileId, tileGetters, matrix, attributesByTileId);
+            return { layer, tileWidth, tileHeight, tileGetters };
         }
     };
 }
@@ -55,9 +55,12 @@ async function createLayer(colorToTileId, tileGetters, matrix, attributesByTileI
 
             let tileGetter = tileGetters[tileId];
             let tile = tileGetter();
-
+            let presentTile;
             let attributes = attributesByTileId[tileId] || {};
-            tileRow.push({ tile, ...attributes });
+            if (attributes.present) {
+                presentTile = tileGetters[attributes.present]();
+            }
+            tileRow.push({ tile, ...attributes, presentTile });
         }
         tileRows.push(tileRow);
     }

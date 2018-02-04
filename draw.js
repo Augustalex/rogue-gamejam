@@ -77,7 +77,7 @@ export default async function draw({ canvas: finalCanvas, context: finalContext 
 
     for (let entityId in store.state.entitiesById) {
         if (store.state.entitiesById.hasOwnProperty(entityId)) {
-            store.state.entitiesById[entityId].render({context, canvas: preRenderSurface, camera});
+            store.state.entitiesById[entityId].render({ context, canvas: preRenderSurface, camera });
         }
     }
 
@@ -93,8 +93,12 @@ export default async function draw({ canvas: finalCanvas, context: finalContext 
     for (let y = 0; y < worldLayer.length; y++) {
         let tileY = y * tileHeight;
         for (let x = 0; x < worldLayer[y].length; x++) {
-            let { tile } = worldLayer[y][x];
+            let { tile, presentTile } = worldLayer[y][x];
+            if (presentTile && store.state.presentDimension) {
+                tile = presentTile;
+            }
             if (!tile) continue;
+
             let tileX = x * tileWidth;
             if (tileX > camera.x + camera.w || tileX + tileWidth < camera.x
                 || tileY > camera.y + camera.h || tileY + tileHeight < camera.y) {

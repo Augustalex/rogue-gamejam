@@ -38,7 +38,6 @@ export default function () {
                 await audio.play();
             }
             catch (ex) {
-                console.log(ex);
                 setTimeout(async () => {
                     await audio.play();
                 });

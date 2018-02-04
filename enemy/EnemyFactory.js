@@ -1,5 +1,6 @@
 import utils from "../utils.js";
 import Boss from "./Boss.js";
+import Friend from "./Friend.js";
 
 const { genId, rand255, rHue, rColor } = utils;
 
@@ -8,6 +9,7 @@ export default function (storeDeps, { controllerId }) {
 
     return {
         createEnemy,
+        createFriend,
         createBoss
     };
 
@@ -19,6 +21,11 @@ export default function (storeDeps, { controllerId }) {
     function createBoss({ x, y }) {
         let enemyState = Boss.createState({ controllerId, x, y });
         store.dispatch('createBoss', enemyState);
+    }
+
+    function createFriend({ x, y }) {
+        let enemyState = Friend.createState({ controllerId, x, y });
+        store.dispatch('createFriend', enemyState);
     }
 }
 

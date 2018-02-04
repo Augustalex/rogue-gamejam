@@ -11,6 +11,7 @@ import AudioEngine from './audio/AudioEngine.js';
 import utils from './utils.js';
 import Enemy from './enemy/Enemy.js';
 import Boss from './enemy/Boss.js';
+import Friend from './enemy/Friend.js';
 import EnemyFactory from './enemy/EnemyFactory.js';
 import WorldMaker from "./mapLoader/WorldMaker.js";
 import worldData from "./mapLoader/worldData2.js";
@@ -132,6 +133,17 @@ export default async function () {
                             firstKey: 'bulletsByShooterId',
                             secondKey: shooterId,
                             thirdKey: bulletId
+                        });
+                        setTimeout(() => {
+                            console.log('REMOVED BULLET?', state.bulletsByShooterId[shooterId][bulletId]);
+                        });
+                    }
+                },
+                REMOVE_ENTITY({ state }, id) {
+                    if (state.entitiesById[id]) {
+                        state.removeRequests.push({
+                            firstKey: 'entitiesById',
+                            secondKey: id
                         })
                     }
                 },
@@ -242,6 +254,13 @@ export default async function () {
                         commit('ADD_BLOOD', { x, y })
                     }
                 },
+                killEntity({ state, commit }, entityId) {
+                    if (state.entitiesById[entityId]) {
+                        let { x, y } = state.entitiesById[entityId];
+                        commit('REMOVE_ENTITY', entityId);
+                        commit('ADD_BLOOD', { x, y })
+                    }
+                },
                 playerFall({ state, commit, dispatch }, { id, x, y }) {
                     commit('SET_PLAYER_POS', { id, x, y });
                     audioEngine.play('playerFall2');
@@ -319,6 +338,40 @@ export default async function () {
                         let { x, y } = state.bullets[bulletId];
                         commit('REMOVE_BULLET', bulletId);
                         commit('ADD_BURN', { x, y });
+                    }, Math.round(Math.random() * 200) + 2000);
+                },
+                entityFireArrow({ state, commit, dispatch }, { id: entityId, x, y }) {
+                    let id = entityId;
+                    let entity = state.entitiesById[entityId];
+                    let randomPlayerId = Object.keys(state.playersById)[0];
+                    let player = state.playersById[randomPlayerId];
+                    let entityPos = entity.getPosition();
+                    let targetDir = Math.atan2(player.position.y - entityPos.y, player.position.x - entityPos.x);
+                    let directionRad = targetDir - Math.PI / 40;
+                    let bulletId = genId();
+                    let newDirectionX = Math.cos(directionRad);
+                    let newDirectionY = Math.sin(directionRad);
+
+                    let bullet = {
+                        x: x,
+                        y: y,
+                        id: bulletId,
+                        shooterId: null,
+                        direction: {
+                            x: newDirectionX * (0.5 + Math.random() * 0.1),
+                            y: newDirectionY * (0.5 + Math.random() * 0.1)
+                        },
+                        isEnemy: false,
+                        height: 8 + Math.random()
+                    };
+                    commit('ADD_ENTITY_BULLET', { id, bullet });
+                    audioEngine.play('arrow');
+
+                    setTimeout(() => {
+                        if (!state.bulletsByShooterId[id][bulletId]) return;
+                        let { x, y } = state.bulletsByShooterId[id][bulletId];
+                        commit('REMOVE_ENTITY_BULLET', { shooterId: id, bulletId });
+                        commit('ADD_BURN', { x, y })
                     }, Math.round(Math.random() * 200) + 1000);
                 },
                 fireSmallBlast({ state, commit }, { id: entityId, x, y }) {
@@ -351,8 +404,8 @@ export default async function () {
                         commit('ADD_ENTITY_BULLET', { id, bullet });
 
                         setTimeout(() => {
-                            if (!state.bullets[bulletId]) return;
-                            let { x, y } = state.bullets[bulletId];
+                            if (!state.bulletsByShooterId[id][bulletId]) return;
+                            let { x, y } = state.bulletsByShooterId[id][bulletId];
                             commit('REMOVE_ENTITY_BULLET', { shooterId: id, bulletId });
                             commit('ADD_BURN', { x, y })
                         }, Math.round(Math.random() * 200) + 5000);
@@ -446,6 +499,11 @@ export default async function () {
                     commit('ADD_ENTITY', enemy);
                     enemy.loadSprite();
                 },
+                createFriend({ state, commit }, enemyState) {
+                    let enemy = Friend({ store, localStore }, enemyState);
+                    commit('ADD_ENTITY', enemy);
+                    enemy.loadSprite();
+                },
                 fireLaser({ state, commit }, {
                     id: entityId,
                     x,
@@ -514,6 +572,18 @@ export default async function () {
     enemyFactory.createBoss({
         x: World.boss.x,
         y: World.boss.y,
+    });
+    enemyFactory.createFriend({
+        x: 2300,
+        y: 8000,
+    });
+    enemyFactory.createFriend({
+        x: 2600,
+        y: 8300,
+    });
+    enemyFactory.createFriend({
+        x: 2000,
+        y: 8600,
     });
 
     let canvas = document.createElement('canvas');

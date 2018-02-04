@@ -141,7 +141,6 @@ function Player({ localStore, store, playerId }) {
 
             if (moving) {
                 if (timeToNextSound <= 0) {
-                    console.log('sound');
                     store.dispatch('playerMoveSound', { id: playerId, x, y });
                     timeToNextSound = timeBetweenSounds;                }
                 else {
