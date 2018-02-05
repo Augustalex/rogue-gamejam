@@ -22,9 +22,10 @@ let ballHue = 340;
 let hueDir = 1;
 
 export default async function () {
-    let socket = io.connect(`${window.location.hostname}:3032`);
-    console.log(window.location.hostname);
+    // let socket = io.connect(`${window.location.hostname}:3032`);
     //let socket = io.connect('http://192.168.1.106:3032');
+
+    console.log(window.location.hostname);
     const color = rColor();
     const clientId = `${rand255()}${rand255()}`;
     console.log('clientId: ', clientId);
@@ -612,10 +613,15 @@ export default async function () {
         }
     });
 
-    let store = StoreProxy({
-        socket,
-        store: localStore
-    });
+    //For online play
+    // let store = StoreProxy({
+    //     socket,
+    //     store: localStore
+    // });
+
+    //For offline play
+    let store = localStore;
+
     store.commit('ADD_PLAYER', createOwnPlayer());
     let enemyFactory = EnemyFactory({ localStore, store }, { controllerId: clientId });
     enemyFactory.createBoss({
@@ -639,10 +645,12 @@ export default async function () {
     // });
 
     let canvas = document.createElement('canvas');
-    canvas.width = window.innerWidth - 32;
-    canvas.height = window.innerHeight - 32;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
     canvas.style.width = `${canvas.width}px`;
     canvas.style.height = `${canvas.height}px`;
+    document.body.style.overflow = 'hidden';
+    document.body.style.margin = '0';
     document.body.appendChild(canvas);
     let context = canvas.getContext('2d');
     localStore.commit('SET_BLOOD_ENGINE', Blood(canvas, context));

@@ -139,8 +139,8 @@ export default async function draw({ canvas: finalCanvas, context: finalContext 
         }
     }
 
-    // var t1 = performance.now();
-    // console.log("Call to Draw.js took " + (t1 - t0) + " milliseconds.")
+    var t1 = performance.now();
+    console.log("Call to Draw.js took " + (t1 - t0) + " milliseconds.")
 }
 
 function drawPlayer(context, { position: { x, y }, color, moving, shooting, teleporting, teleportCursor, id, sprite }, camera) {
@@ -286,12 +286,9 @@ function applyVignette(store, clientId, finalCanvas, finalContext) {
 function Rain(canvas, context) {
     var w = canvas.width;
     var h = canvas.height;
-    context.strokeStyle = 'rgba(174,194,224,0.5)';
-    context.lineWidth = 1;
-    context.lineCap = 'round';
 
     var init = [];
-    var maxParts = 250;
+    var maxParts = 100;
     for (var a = 0; a < maxParts; a++) {
         init.push({
             x: Math.random() * w,
@@ -312,15 +309,24 @@ function Rain(canvas, context) {
     };
 
     function draw() {
-        // context.clearRect(0, 0, w, h);
+        let preRenderSurface = document.createElement('canvas');
+        preRenderSurface.width = canvas.width;
+        preRenderSurface.height = canvas.height;
+        let preRenderContext = preRenderSurface.getContext('2d');
+        preRenderContext.strokeStyle = 'rgb(255,255,255)' || 'rgba(0,255,255,.4)' || 'rgba(174,194,224,0.5)';
+        preRenderContext.lineCap = 'round';
+        preRenderContext.fillStyle = 'rgba(20,50,155,.05)'
+
         for (var c = 0; c < particles.length; c++) {
             var p = particles[c];
-            context.beginPath();
-            context.lineWidth = 5;
-            context.moveTo(p.x, p.y);
-            context.lineTo(p.x + p.l * p.xs, p.y + p.l * p.ys);
-            context.stroke();
+            preRenderContext.beginPath();
+            preRenderContext.lineWidth = 1.5;
+            preRenderContext.moveTo(p.x, p.y);
+            preRenderContext.lineTo(p.x + p.l * p.xs, p.y + p.l * p.ys);
+            preRenderContext.stroke();
         }
+
+        context.drawImage(preRenderSurface, 0, 0, canvas.width, canvas.height);
         move();
     }
 
