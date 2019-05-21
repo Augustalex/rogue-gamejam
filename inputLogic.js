@@ -1,7 +1,7 @@
 //TODO make public constant in a players class
 const runningSpeed = 2;
 
-export default function ({ keysDown, wasPressed, wasReleased, keysDown: actionKeysActive }, { localStore, store, clientId }) {
+export default function ({ keysDown, wasPressed, wasReleased, keysDown: actionKeysActive }, { store, clientId }) {
     if (wasPressed('run')) {
         actionKeysActive.add('run')
     }
@@ -70,10 +70,10 @@ export default function ({ keysDown, wasPressed, wasReleased, keysDown: actionKe
                 player.hasTripleBow = true;
             }
         }
-        localStore.commit('SET_PLAYER_INTERACTING', { id: store.state.clientId, interacting: true });
+        store.commit('SET_PLAYER_INTERACTING', { id: store.state.clientId, interacting: true });
     }
     else if (wasReleased('interact')) {
-        localStore.commit('SET_PLAYER_INTERACTING', { id: store.state.clientId, interacting: false });
+        store.commit('SET_PLAYER_INTERACTING', { id: store.state.clientId, interacting: false });
     }
 
     if (player.abilities.teleport) {
