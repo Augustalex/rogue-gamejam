@@ -20,26 +20,42 @@ import WorldMaker from "./mapLoader/WorldMaker.js";
 import worldData from "./mapLoader/world1Data.js";
 
 const { genId, rand255, rHue, rColor } = utils;
+
+let clientId = localStorage.getItem('clientId');
+if (!clientId) {
+    clientId = `${rand255()}${rand255()}`;
+    localStorage.setItem('clientId', clientId);
+}
+console.log('clientId: ', clientId);
+
 let beamHue = 329;
 let ballHue = 340;
 let hueDir = 1;
 
 export default async function () {
-    // let socket = io.connect(`${window.location.hostname}:3032`);
-    //let socket = io.connect('http://192.168.1.106:3032');
-
+    let socket = io();
     console.log(window.location.hostname);
+
+    socket.emit('login', { clientId });
+    socket.on('setup', async () => {
+        console.log('got setup command from server');
+        const setup = await start({ socket, clientId, alreadyCreated: false });
+        console.log('start done');
+        setup();
+    });
+    socket.on('start', ({ alreadyCreated }) => {
+        console.log('got start command from server', { alreadyCreated });
+        start({ socket, clientId, alreadyCreated });
+    });
+}
+
+async function start({ socket, clientId, alreadyCreated }) {
     const color = rColor();
-    const clientId = `${rand255()}${rand255()}`;
-    console.log('clientId: ', clientId);
 
     let worldMaker = WorldMaker(worldData);
-    console.log('PARSING WORLD')
-    let worldLayer = await
-        worldMaker.makeLayer();
-    console.log('DONE PARSING WORLD')
+    console.log('PARSING WORLD');
+    let worldLayer = await worldMaker.makeLayer();
     let audioEngine = AudioEngine();
-
     let itemFactory = ItemFactory({});
 
     const createOwnPlayer = () => {
@@ -664,6 +680,9 @@ export default async function () {
                         }, Math.round(Math.random() * 200) + 2000);
                     }
                 },
+                async bossFightSound() {
+                    await audioEngine.play('bossFight-0', { type: 'background' });
+                },
                 async updateCurrentAudioZone({ state }) {
                     let localPlayer = state.playersById[state.clientId];
                     await audioEngine.changeSongIfNewZone(state.worldLayer, {
@@ -706,93 +725,101 @@ export default async function () {
         }
     });
 
-    //For online play
-    // let store = StoreProxy({
-    //     socket,
-    //     store: localStore
-    // });
-
-    //For offline play
-    let store = localStore;
-
-    store.commit('ADD_PLAYER', createOwnPlayer());
-    let itemFactoryDispatcher = ItemFactoryDispatcher({ localStore, store }, { controllerId: clientId })
-    let enemyFactory = EnemyFactory({ localStore, store }, { controllerId: clientId });
-    enemyFactory.createBoss({
-        x: World.boss.x,
-        y: World.boss.y,
+    let store = StoreProxy({
+        socket,
+        store: localStore
     });
-    worldLayer.enemyFactories.forEach(f => {
-        f({ localStore, store, controllerId: clientId })
-    });
-    itemFactoryDispatcher.createItem({
-        controllerId: clientId,
-        x: World.playerSpawn.x + 430,
-        y: World.playerSpawn.y - 200,
-        ability: 'teleport'
-    })
-    itemFactoryDispatcher.createItem({
-        controllerId: clientId,
-        x: World.playerSpawn.x + 230,
-        y: World.playerSpawn.y,
-        ability: 'crossbow'
-    })
-    // itemFactoryDispatcher.createItem({
-    //     controllerId: clientId,
-    //     x: World.playerSpawn.x + 500,
-    //     y: World.playerSpawn.y,
-    //     ability: 'time'
-    // })
-    // enemyFactory.createFriend({
-    //     x: 2300,
-    //     y: 8000,
-    // });
-    // enemyFactory.createFriend({
-    //     x: 2600,
-    //     y: 8300,
-    // });
-    // enemyFactory.createFriend({
-    //     x: 2000,
-    //     y: 8600,
-    // });
 
-    let canvas = document.createElement('canvas');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    canvas.style.width = `${canvas.width}px`;
-    canvas.style.height = `${canvas.height}px`;
-    document.body.style.overflow = 'hidden';
-    document.body.style.margin = '0';
-    document.body.appendChild(canvas);
-    let context = canvas.getContext('2d');
-    localStore.commit('SET_BLOOD_ENGINE', Blood(canvas, context));
-    let inputHookDependencies = { localStore, store, clientId };
-    inputController.addHook(inputLogic);
+    if (!alreadyCreated) {
+        store.commit('ADD_PLAYER', createOwnPlayer());
+    }
 
-    let respawning = false;
-    let lastTime = 0;
-    const loop = async time => {
-        let delta = ((time - lastTime) * .001) || .16;
-        lastTime = time;
-        inputController.updateInput(inputHookDependencies);
+    startLoop();
+    socket.emit('reload');
 
-        fysik(localStore, store, delta);
-        await draw({ canvas, context }, { store, localStore, clientId });
-
-        gc();
-        if (!respawning && store.state.localPlayerDead) {
-            respawning = true;
-            console.log('RESPAWN IN 3 SECONDS');
-            setTimeout(() => {
-                let player = createOwnPlayer();
-                store.commit('ADD_PLAYER', player);
-                respawning = false
-            }, 3000);
-        }
-
-        requestAnimationFrame(loop)
+    return () => {
+        console.log('CREATING ENEMIES');
+        let itemFactoryDispatcher = ItemFactoryDispatcher({ localStore, store }, { controllerId: clientId })
+        let enemyFactory = EnemyFactory({ localStore, store }, { controllerId: clientId });
+        enemyFactory.createBoss({
+            x: World.boss.x,
+            y: World.boss.y,
+        });
+        worldLayer.enemyFactories.forEach(f => {
+            f({ localStore, store, controllerId: clientId })
+        });
+        itemFactoryDispatcher.createItem({
+            controllerId: clientId,
+            x: World.playerSpawn.x + 430,
+            y: World.playerSpawn.y - 200,
+            ability: 'teleport'
+        });
+        itemFactoryDispatcher.createItem({
+            controllerId: clientId,
+            x: World.playerSpawn.x + 230,
+            y: World.playerSpawn.y,
+            ability: 'crossbow'
+        })
+        // itemFactoryDispatcher.createItem({
+        //     controllerId: clientId,
+        //     x: World.playerSpawn.x + 500,
+        //     y: World.playerSpawn.y,
+        //     ability: 'time'
+        // })
+        // enemyFactory.createFriend({
+        //     x: 2300,
+        //     y: 8000,
+        // });
+        // enemyFactory.createFriend({
+        //     x: 2600,
+        //     y: 8300,
+        // });
+        // enemyFactory.createFriend({
+        //     x: 2000,
+        //     y: 8600,
+        // });
     };
-    loop();
+
+    function startLoop() {
+        let canvas = document.createElement('canvas');
+        canvas.width = window.innerWidth - 32;
+        canvas.height = window.innerHeight - 32;
+        canvas.style.width = `${canvas.width}px`;
+        canvas.style.height = `${canvas.height}px`;
+        document.body.appendChild(canvas);
+        let context = canvas.getContext('2d');
+        localStore.commit('SET_BLOOD_ENGINE', Blood(canvas, context));
+        let inputHookDependencies = { store, clientId };
+        inputController.addHook(inputLogic);
+
+        let respawning = false;
+        let lastTime = 0;
+        const loop = async time => {
+            let clientPlayer = store.state.playersById[store.state.clientId];
+            if (clientPlayer) {
+                let delta = ((time - lastTime) * .001) || .16;
+                lastTime = time;
+                inputController.updateInput(inputHookDependencies);
+
+                fysik(localStore, store, delta);
+                await draw({ canvas, context }, { store, localStore, clientId });
+
+                gc();
+                if (!respawning && store.state.localPlayerDead) {
+                    respawning = true;
+                    console.log('RESPAWN IN 3 SECONDS');
+                    setTimeout(() => {
+                        let player = createOwnPlayer();
+                        store.commit('ADD_PLAYER', player);
+                        respawning = false
+                    }, 3000);
+                }
+            }
+
+            requestAnimationFrame(loop)
+        };
+        loop();
+    }
 
     function gc() {
         for (let { firstKey, secondKey, thirdKey, callback } of store.state.removeRequests) {

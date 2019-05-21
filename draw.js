@@ -160,7 +160,7 @@ function drawPlayer(context, { position: { x, y }, color, moving, shooting, tele
     let scale = 2;
     context.imageSmoothingEnabled = false;
     if (!sprite) {
-        console.log('!SPRITE');
+        //console.log('!SPRITE');
     }
     if (!sprite) return;
     context.drawImage(sprite, Math.floor(x - sprite.width * scale / 2), Math.floor(y - sprite.height * scale), sprite.width * scale, sprite.height * scale);
