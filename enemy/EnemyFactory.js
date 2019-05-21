@@ -5,7 +5,7 @@ import Friend from "./Friend.js";
 const { genId, rand255, rHue, rColor } = utils;
 
 export default function (storeDeps, { controllerId }) {
-    let { localStore, store } = storeDeps;
+    let { store } = storeDeps;
 
     return {
         createEnemy,
