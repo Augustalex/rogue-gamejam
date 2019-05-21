@@ -58,9 +58,18 @@ function Boss(storeDependencies, state) {
                 drawBullet(context, bullet, color)
             }
             if (Sprites.boss.complete) {
+                if (Math.random() < .001) {
+                    store.dispatch('playBossScream');
+                }
                 let scale = 2;
                 if (state.isMoving) {
+                    //1,9,24
                     state.currentFrame += 0.5;
+                    if (state.currentFrame === 0
+                        || state.currentFrame === 10
+                        || state.currentFrame === 20) {
+                        localStore.dispatch('playBossStepSound');
+                    }
                     if (state.currentFrame > 23.5) {
                         state.currentFrame = 0;
                     }
@@ -132,7 +141,7 @@ function Boss(storeDependencies, state) {
                 context.globalAlpha = 1;
             }
 
-            if(bullet.presentDimension === store.state.presentDimension){
+            if (bullet.presentDimension === store.state.presentDimension) {
                 context.beginPath();
                 context.arc(Math.floor(bullet.x), Math.floor(bullet.y), 8, 0, 2 * Math.PI, false);
                 context.fillStyle = `hsl(${bullet.hue},100%,70%)`;
@@ -140,7 +149,7 @@ function Boss(storeDependencies, state) {
                 context.lineWidth = 2;
                 context.strokeStyle = `hsl(${bullet.hue},100%,58%)`;
                 context.stroke();
-            }else {
+            } else {
                 context.beginPath();
                 context.arc(Math.floor(bullet.x), Math.floor(bullet.y), 8, 0, 2 * Math.PI, false);
                 context.globalAlpha = 0.5;
@@ -175,7 +184,6 @@ Boss.createState = function ({ controllerId, x, y }) {
 export default Boss;
 
 let sat = 50;
-
 
 
 function fillRectRot(context, x, y, width, height, dir) {

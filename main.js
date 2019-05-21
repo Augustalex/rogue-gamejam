@@ -12,7 +12,10 @@ import utils from './utils.js';
 import Enemy from './enemy/Enemy.js';
 import Boss from './enemy/Boss.js';
 import Friend from './enemy/Friend.js';
+import PastFriend from './enemy/PastFriend.js';
 import EnemyFactory from './enemy/EnemyFactory.js';
+import ItemFactory from './entities/ItemFactory.js';
+import ItemFactoryDispatcher from './entities/ItemFactoryDispatcher.js';
 import WorldMaker from "./mapLoader/WorldMaker.js";
 import worldData from "./mapLoader/world1Data.js";
 
@@ -31,8 +34,13 @@ export default async function () {
     console.log('clientId: ', clientId);
 
     let worldMaker = WorldMaker(worldData);
-    let worldLayer = await worldMaker.makeLayer();
+    console.log('PARSING WORLD')
+    let worldLayer = await
+        worldMaker.makeLayer();
+    console.log('DONE PARSING WORLD')
     let audioEngine = AudioEngine();
+
+    let itemFactory = ItemFactory({});
 
     const createOwnPlayer = () => {
         return {
@@ -40,6 +48,9 @@ export default async function () {
             position: {
                 x: World.playerSpawn.x,
                 y: World.playerSpawn.y,
+            },
+            abilities: {
+                sprint: true
             },
             color,
             speed: 220,
@@ -108,6 +119,12 @@ export default async function () {
                         state.playersById[id].health = health
                     }
                 },
+                SET_PLAYER_INTERACTING({ state }, { id, interacting }) {
+                    state.playersById[id].interacting = interacting;
+                },
+                ADD_PLAYER_ABILITY({ state }, { id, ability }) {
+                    state.playersById[id].abilities[ability] = true;
+                },
                 SET_ENTITY_HEALTH({ state }, { id, health }) {
                     if (state.entitiesById[id]) {
                         state.entitiesById[id].health = health;
@@ -159,14 +176,15 @@ export default async function () {
                         y: 0
                     };
                 },
-                CHANGE_DIMENSION({ state }, { id }) {
+                CHANGE_DIMENSION({ state }) {
                     state.presentDimension = !state.presentDimension;
                 },
-                FINISH_PLAYER_TELEPORTING({ state, commit }, { id }) {
+                FINISH_PLAYER_TELEPORTING({ state, dispatch }, { id }) {
                     let player = state.playersById[id];
                     player.teleporting = false;
                     player.position.x = player.position.x + player.teleportCursor.x;
                     player.position.y = player.position.y + player.teleportCursor.y;
+                    dispatch('playPlayerTeleport');
                 },
                 SET_ENTITY_BULLET_POS({ state }, { id, bulletId, x, y, height }) {
                     state.bulletsByShooterId[id][bulletId].x = x;
@@ -216,6 +234,10 @@ export default async function () {
                 }
             },
             actions: {
+                createItem({ commit }, itemState) {
+                    let item = itemFactory.createItem({ localStore, store }, itemState);
+                    commit('ADD_ENTITY', item);
+                },
                 addBloodTrail({ state }, playerId) {
                     let { x, y } = state.playersById[playerId];
                     state.blood.addTrail(x, y);
@@ -269,7 +291,7 @@ export default async function () {
                     }, 200);
                     dispatch('killPlayer', id);
                 },
-                playerMoveSound({}, { id, x, y }) {
+                playerMoveSound() {
                     let sounds = [
                         // 'playerStep1',
                         'playerStep2',
@@ -291,6 +313,7 @@ export default async function () {
                         else {
                             commit('ADD_BLOOD', { x, y });
                             commit('SET_PLAYER_HEALTH', { id: playerId, health: newHealth })
+                            dispatch('playPlayerImpact')
                         }
                     }
                 },
@@ -342,7 +365,43 @@ export default async function () {
                         commit('ADD_BURN', { x, y });
                     }, Math.round(Math.random() * 200) + 2000);
                 },
-                entityFireArrow({ state, commit, dispatch }, { id: entityId, x, y }) {
+                playerSlash({ state, commit }, { id, direction }) {
+                    let player = state.playersById[id];
+                    let bulletId = genId();
+                    let directionRad = Math.atan2(direction.y, direction.x);
+                    let newDirectionRad = directionRad + (Math.random() * .05) - .025;
+                    let newDirectionX = Math.cos(newDirectionRad);
+                    let newDirectionY = Math.sin(newDirectionRad);
+                    let shootDir = Math.atan2(player.shooting.direction.y, player.shooting.direction.x);
+                    let gunPosX = player.position.x + Math.cos(shootDir + Math.PI / 4) * 9;
+                    let gunPosY = player.position.y - 64 + Math.sin(shootDir + Math.PI / 4) * 9;
+
+                    let bullet = {
+                        x: gunPosX,
+                        y: gunPosY,
+                        id: bulletId,
+                        shooterId: id,
+                        direction: {
+                            x: newDirectionX,
+                            y: newDirectionY
+                        },
+                        height: 8,
+                        isEnemy: false,
+                        damage: 200,
+                        type: 'sword'
+                    };
+                    commit('ADD_BULLET', bullet);
+
+                    audioEngine.play('playerTeleport');
+
+                    setTimeout(() => {
+                        if (!state.bullets[bulletId]) return;
+                        let { x, y } = state.bullets[bulletId];
+                        commit('REMOVE_BULLET', bulletId);
+                        commit('ADD_BURN', { x, y });
+                    }, 25);
+                },
+                entityFireArrow({ state, commit, dispatch }, { id: entityId, x, y, damage }) {
                     let id = entityId;
                     let entity = state.entitiesById[entityId];
                     let randomPlayerId = Object.keys(state.playersById)[0];
@@ -357,6 +416,7 @@ export default async function () {
                     let bullet = {
                         x: x,
                         y: y,
+                        damage,
                         id: bulletId,
                         shooterId: null,
                         direction: {
@@ -443,7 +503,7 @@ export default async function () {
                             let { x, y } = state.bulletsByShooterId[id][bulletId];
                             commit('REMOVE_ENTITY_BULLET', { shooterId: id, bulletId });
                             commit('ADD_BURN', { x, y })
-                        }, Math.round(Math.random() * 200) + 10);
+                        }, Math.round(Math.random() * 200) + 2000);
                         hue += 40 / shots;
                     }
                 },
@@ -506,6 +566,11 @@ export default async function () {
                     commit('ADD_ENTITY', enemy);
                     enemy.loadSprite();
                 },
+                createPastFriend({ commit }, enemyState) {
+                    let enemy = PastFriend({ store, localStore }, enemyState);
+                    commit('ADD_ENTITY', enemy);
+                    enemy.loadSprite();
+                },
                 fireLaser({ state, commit }, {
                     id: entityId,
                     x,
@@ -527,6 +592,7 @@ export default async function () {
                         let directionX = Math.cos(targetDir);
                         let directionY = Math.sin(targetDir);
 
+                        audioEngine.play('bossLaser', { type: 'ambient', volume: .08 });
                         let bullet = {
                             x: x,
                             y: y,
@@ -598,9 +664,6 @@ export default async function () {
                         }, Math.round(Math.random() * 200) + 2000);
                     }
                 },
-                async bossFightSound() {
-                    await audioEngine.play('bossFight-0', { type: 'background' });
-                },
                 async updateCurrentAudioZone({ state }) {
                     let localPlayer = state.playersById[state.clientId];
                     await audioEngine.changeSongIfNewZone(state.worldLayer, {
@@ -608,6 +671,36 @@ export default async function () {
                         y: localPlayer.position.y,
                         presentDimension: state.presentDimension
                     })
+                },
+                async playBossStepSound() {
+                    let bossSteps = [
+                        'bossStep-1',
+                        'bossStep-2',
+                        'bossStep-3'
+                    ];
+                    let step = bossSteps[Math.round(Math.random() * (bossSteps.length - 1))];
+                    await audioEngine.play(step, { type: 'ambient', volume: .2 });
+                },
+                async playBossScream() {
+                    await audioEngine.play('bossScream', { type: 'ambient' });
+                },
+                async playBossImpact() {
+                    await audioEngine.play('genericImpact', { type: 'ambient', volume: .1 });
+                },
+                async playPlayerTeleport({ dispatch }) {
+                    await audioEngine.play('playerTeleport', { type: 'ambient', volume: .03 });
+                    dispatch('playerMoveSound')
+                },
+                async playPlayerImpact() {
+                    await audioEngine.play('genericImpact', { type: 'ambient', volume: .1 });
+                    await audioEngine.play('playerFall3', { type: 'ambient', volume: .05 });
+                },
+                placeEnemiesFromWorldLayer() {
+                    // console.log('placed enemies')
+                    // worldLayer.enemyFactories.forEach(f => {
+                    //     f({ localStore, store, controllerId: clientId })
+                    // });
+                    // console.log('entity count: ' + Object.keys(store.state.entitiesById).length)
                 }
             }
         }
@@ -623,6 +716,7 @@ export default async function () {
     let store = localStore;
 
     store.commit('ADD_PLAYER', createOwnPlayer());
+    let itemFactoryDispatcher = ItemFactoryDispatcher({ localStore, store }, { controllerId: clientId })
     let enemyFactory = EnemyFactory({ localStore, store }, { controllerId: clientId });
     enemyFactory.createBoss({
         x: World.boss.x,
@@ -631,6 +725,24 @@ export default async function () {
     worldLayer.enemyFactories.forEach(f => {
         f({ localStore, store, controllerId: clientId })
     });
+    itemFactoryDispatcher.createItem({
+        controllerId: clientId,
+        x: World.playerSpawn.x + 430,
+        y: World.playerSpawn.y - 200,
+        ability: 'teleport'
+    })
+    itemFactoryDispatcher.createItem({
+        controllerId: clientId,
+        x: World.playerSpawn.x + 230,
+        y: World.playerSpawn.y,
+        ability: 'crossbow'
+    })
+    // itemFactoryDispatcher.createItem({
+    //     controllerId: clientId,
+    //     x: World.playerSpawn.x + 500,
+    //     y: World.playerSpawn.y,
+    //     ability: 'time'
+    // })
     // enemyFactory.createFriend({
     //     x: 2300,
     //     y: 8000,
@@ -654,7 +766,7 @@ export default async function () {
     document.body.appendChild(canvas);
     let context = canvas.getContext('2d');
     localStore.commit('SET_BLOOD_ENGINE', Blood(canvas, context));
-    let inputHookDependencies = { store, clientId };
+    let inputHookDependencies = { localStore, store, clientId };
     inputController.addHook(inputLogic);
 
     let respawning = false;

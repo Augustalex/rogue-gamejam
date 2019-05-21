@@ -15,5 +15,12 @@ export default {
     "playerStep3": "gustavSteg3.wav",
     "playerStep4": "Movement1HeimN.ogg",
     "playerStep5": "Movement2HeimN.ogg",
-    "playerStep6": "Movement3HeimN.ogg"
+    "playerStep6": "Movement3HeimN.ogg",
+    "bossStep-1": "BigStep1N.ogg",
+    "bossStep-2": "BigStep2N.ogg",
+    "bossStep-3": "BigStep3N.ogg",
+    "bossScream": "Boss Scream.ogg",
+    "bossLaser": "laserLUL.ogg",
+    "genericImpact": "Impact.ogg",
+    "playerTeleport": "SLASHv1N.ogg",
 }

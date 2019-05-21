@@ -1,9 +1,15 @@
 import Friend from "../enemy/Friend.js";
+import ItemFactoryDispatcher from '../entities/ItemFactoryDispatcher.js'
+import EnemyFactory from '../enemy/EnemyFactory.js'
+
+let storeDeps;
+let itemFactoryDispatcher;
+let enemyFactory;
 
 export default {
-    matrixPath: './mapLoader/world01.bmp',
+    matrixPath: './mapLoader/world01-2.bmp',
     audioMapPath: './mapLoader/world01-audio.bmp',
-    enemyMapPath: './mapLoader/world01-enemy.bmp',
+    enemyMapPath: './mapLoader/world01-enemy2.bmp',
     spritePaths: {
         'grass': './sprites/tile_Grass.png',
         'grassPresent': './sprites/tiles/tile_GrassPresent.png',
@@ -115,13 +121,31 @@ export default {
     attributesByAudioName: {
         wind: {
             present: 'wind',
-            past: 'rain'
+            past: 'rain',
+            volume: .6
+        },
+        'boss-1': {
+            volume: 0.15
+        },
+        dumdum: {
+            volume: 1
+        },
+        'sweeps-0': {
+            volume: 0.6
+        },
+        'ambient-0': {
+            volume: 0.6
+        },
+        throneroom: {
+            volume: 0.6
         }
     },
     colorToEnemyName: {
         '255,0,0': 'friend',
+        '49,255,0': 'pastFriend',
+        '0,25,255': 'abilityItemTime',
         '0,0,0': 'nullEnemy',
-        '255,255,255': 'nullEnemy',
+        '255,255,255': 'nullEnemy'
     },
     TileGetters: (sprites) => ({
         bricks() {
@@ -246,6 +270,40 @@ export default {
                 // localStore.commit('SET_PLAYER_POS', { id: localStore.state.clientId, x, y}
                 let enemyState = Friend.createState({ controllerId, x: x * 32, y: y * 32 });
                 store.dispatch('createFriend', enemyState);
+            }
+        },
+        pastFriend(x, y) {
+            return (deps) => {
+                let { store, localStore, controllerId } = deps;
+                console.log('past friend', x, y, x * 32, y * 32)
+                if (!storeDeps ||
+                    (storeDeps && storeDeps.store !== deps.store && store.localStore !== deps.localStore)) {
+                    storeDeps = { store, localStore }
+                }
+                if (!enemyFactory) {
+                    enemyFactory = EnemyFactory(storeDeps, { controllerId })
+                }
+
+                enemyFactory.createPastFriend({ x: x * 32, y: y * 32 });
+            }
+        },
+        abilityItemTime(x, y) {
+            console.log('ability item time', x, y, x * 32, y * 32)
+            return (deps) => {
+                if (!storeDeps ||
+                    (storeDeps && storeDeps.store !== deps.store && store.localStore !== deps.localStore)) {
+                    storeDeps = deps
+                }
+                if (!itemFactoryDispatcher) {
+                    itemFactoryDispatcher = ItemFactoryDispatcher(deps);
+                }
+
+                itemFactoryDispatcher.createItem({
+                    controllerId: deps.controllerId,
+                    x: x * 32,
+                    y: y * 32,
+                    ability: 'time'
+                })
             }
         },
         nullEnemy() {

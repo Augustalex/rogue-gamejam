@@ -5,18 +5,33 @@ export default {
     bossPast: [],
     async loadResources() {
         // this.character = await loadImageAsync('./sprites/character.png');
+        console.log('LOADING ' + './sprites/character/characterRunLeft.png')
         this.characterRunLeft = await loadCharacterFrames('./sprites/character/characterRunLeft.png', 32, 12);
+        console.log('LOADING ' + './sprites/character/characterRunRight.png')
         this.characterRunRight = await loadCharacterFrames('./sprites/character/characterRunRight.png', 32, 12);
+        console.log('LOADING ' + './sprites/character/characterRunDown.png')
         this.characterRunDown = await loadCharacterFrames('./sprites/character/characterRunDown.png', 32, 12);
+        console.log('LOADING ' + './sprites/character/characterRunUp.png')
         this.characterRunUp = await loadCharacterFrames('./sprites/character/characterRunUp.png', 32, 12);
+        console.log('LOADING ' + './sprites/character/characterIdleUp.png')
         this.characterIdleUp = await loadCharacterFrames('./sprites/character/characterIdleUp.png', 32, 1);
+        console.log('LOADING ' + './sprites/character/characterIdleDown.png')
         this.characterIdleDown = await loadCharacterFrames('./sprites/character/characterIdleDown.png', 32, 1);
+        console.log('LOADING ' + './sprites/character/characterIdleLeft.png')
         this.characterIdleLeft = await loadCharacterFrames('./sprites/character/characterIdleLeft.png', 32, 1);
+        console.log('LOADING ' + './sprites/character/characterIdleRight.png')
         this.characterIdleRight = await loadCharacterFrames('./sprites/character/characterIdleRight.png', 32, 1);
+        console.log('LOADING ' + './sprites/friend.png')
         this.friend = await loadImageAsync('./sprites/friend.png');
+        console.log('LOADING ' + './sprites/character.png')
+        this.pastFriend = await loadImageAsync('./sprites/character.png');
+        console.log('LOADING ' + './sprites/boss.png')
         this.boss = await loadImageAsync('./sprites/boss.png');
+        console.log('LOADING ' + './sprites/boss_Past.png')
         this.bossPast = await loadBossFrames('./sprites/boss_Past.png');
+        console.log('LOADING ' + './sprites/boss_Present.png')
         this.bossPresent = await loadBossFrames('./sprites/boss_Present.png');
+        console.log('LOADING ' + './sprites/chest.png')
         this.chest = await loadImageAsync('./sprites/chest.png');
     }
 }

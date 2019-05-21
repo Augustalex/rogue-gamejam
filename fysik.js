@@ -84,6 +84,7 @@ export default function fysik(localStore, store, delta) {
             if (intersects) {
                 let damage = store.state.presentDimension ? 80 : 160;
                 localStore.commit('REMOVE_BULLET', bulletId);
+                localStore.dispatch('playBossImpact');
                 store.dispatch('entityShot', {
                     id: entityId,
                     damage: damage
@@ -106,20 +107,21 @@ function Player({ localStore, store, playerId }) {
 
     function shoot(player) {
         let bulletDir = Math.atan2(player.shooting.direction.y, player.shooting.direction.x);
-        if (state.hasLaser) {
+        if (player.abilities['crossbow']) {
+            localStore.dispatch('firePlayerWeapon', {
+                id: playerId,
+                direction: player.shooting.direction
+            });
+        }
+        else if (state.hasLaser) {
             localStore.dispatch('firePlayerLaser', {
                 id: playerId,
                 x: player.position.x,
                 y: player.position.y - 32,
                 targetDir: bulletDir
             });
-            return;
         }
-        localStore.dispatch('firePlayerWeapon', {
-            id: playerId,
-            direction: player.shooting.direction,
-        });
-        if (state.hasTripleBow) {
+        else if (state.hasTripleBow) {
             localStore.dispatch('firePlayerWeapon', {
                 id: playerId,
                 direction: {
@@ -140,6 +142,14 @@ function Player({ localStore, store, playerId }) {
                     x: Math.cos(bulletDir + Math.PI / 128),
                     y: Math.sin(bulletDir + Math.PI / 128),
                 },
+            });
+        }
+        else {
+            localStore.dispatch('playerSlash', {
+                id: playerId,
+                x: player.position.x,
+                y: player.position.y,
+                direction: player.shooting.direction
             });
         }
     }
@@ -205,9 +215,9 @@ function Player({ localStore, store, playerId }) {
             lastPosition.y = y;
 
             let speed = player.speed;
-            if (shooting) {
-                speed /= 2;
-            }
+            // if (shooting) {
+            //     speed /= 2;
+            // }
 
             let moving = false;
             if (player.moving && player.moving.x) {
@@ -219,7 +229,7 @@ function Player({ localStore, store, playerId }) {
                 y += speed * delta * player.moving.y
             }
 
-            let running = (player.moving.x > 1 || player.moving.y > 1);
+            let running = (Math.abs(player.moving.x) > 1 || Math.abs(player.moving.y) > 1);
             if (moving) {
                 if (timeToNextSound <= 0) {
                     store.dispatch('playerMoveSound', { id: playerId, x, y });
@@ -455,7 +465,7 @@ function bulletFysik({ store, localStore }, delta) {
             let collidableObjects = Object.keys(playerObjectsById).map(k => playerObjectsById[k]);
             for (let collidable of collidableObjects) {
                 if (collidable.id === bullet.shooterId) continue;
-                if (bullet.presentDimension !== store.state.presentDimension) continue;
+                if ('presentDimension' in bullet && bullet.presentDimension !== store.state.presentDimension) continue;
 
                 let x = collidable.currentPosition.x;
                 let y = collidable.currentPosition.y;
@@ -507,7 +517,7 @@ function bulletFysik({ store, localStore }, delta) {
                         localStore.commit('REMOVE_ENTITY_BULLET', { shooterId, bulletId });
                         store.dispatch('playerShot', {
                             id: collidable.id,
-                            damage: 5
+                            damage: bullet.damage || 5
                         })
                     }
                 }

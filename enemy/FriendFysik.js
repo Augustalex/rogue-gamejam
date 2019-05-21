@@ -32,17 +32,16 @@ export default function (storeDependencies, entityState) {
         let entityPos = entityState.position;
         let targetDir = Math.atan2(target.y - entityPos.y, target.x - entityPos.x);
         let directionRad = targetDir - Math.PI / 40;
-        let movingX = Math.cos(directionRad);
-        let movingY = Math.sin(directionRad);
-
+        let movingX = Math.cos(directionRad) * Math.random();
+        let movingY = Math.sin(directionRad) * Math.random();
         let c = Math.sqrt(movingX * movingX + movingY * movingY);
         movingX /= c;
         movingY /= c;
 
         let data = {
             id: entityState.id,
-            x: movingX,
-            y: movingY
+            x: -movingX,
+            y: -movingY
         };
         store.commit('SET_ENTITY_MOVING', data);
     };

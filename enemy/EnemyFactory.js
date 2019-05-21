@@ -1,6 +1,7 @@
 import utils from "../utils.js";
 import Boss from "./Boss.js";
 import Friend from "./Friend.js";
+import PastFriend from "./PastFriend.js";
 
 const { genId, rand255, rHue, rColor } = utils;
 
@@ -10,6 +11,7 @@ export default function (storeDeps, { controllerId }) {
     return {
         createEnemy,
         createFriend,
+        createPastFriend,
         createBoss
     };
 
@@ -26,6 +28,11 @@ export default function (storeDeps, { controllerId }) {
     function createFriend({ x, y }) {
         let enemyState = Friend.createState({ controllerId, x, y });
         store.dispatch('createFriend', enemyState);
+    }
+
+    function createPastFriend({ x, y }) {
+        let enemyState = PastFriend.createState({ controllerId, x, y });
+        store.dispatch('createPastFriend', enemyState);
     }
 }
 

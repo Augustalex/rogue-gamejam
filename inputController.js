@@ -12,6 +12,20 @@ const leftStickLeft = 'ls:x:0';
 const leftStickDown = 'ls:y:1';
 const leftStickUp = 'ls:y:0';
 const buttonA = 'button:a';
+const buttonB = 'button:b';
+const buttonX = 'button:x';
+const buttonY = 'button:y';
+const buttonRightTrigger = 'button:rt';
+const buttonLeftTrigger = 'button:lt';
+
+const buttonIndexMap = {
+    0: buttonA,
+    1: buttonB,
+    2: buttonX,
+    3: buttonY,
+    6: buttonLeftTrigger,
+    7: buttonRightTrigger
+}
 
 const keymap = {
     up: ['w', leftStickUp],
@@ -23,9 +37,9 @@ const keymap = {
     shootLeft: ['arrowleft', rightStickLeft],
     shootRight: ['arrowright', rightStickRight],
     run: ['shift', buttonA],
-    changeDimension: ['q'],
-    interact: ['e'],
-    teleport: [' '],
+    changeDimension: ['q', buttonY],
+    interact: ['e', buttonX],
+    teleport: [' ', buttonRightTrigger],
 };
 
 let actionKeysActive = new Set();
@@ -73,7 +87,8 @@ function readGamepadState() {
 
     for (let i = 0; i < gamepadOne.buttons.length; i++) {
         if (gamepadOne.buttons[i].pressed) {
-            newKeysDown.add(' ')
+            let button = buttonIndexMap[i];
+            newKeysDown.add(button)
         }
     }
 

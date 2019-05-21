@@ -1,5 +1,7 @@
 import library from './library.js'
 
+const MUTE = false;
+
 export default function () {
 
     let loadedSongs = {};
@@ -26,7 +28,7 @@ export default function () {
 
                 if (audioState.currentZone.past && !presentDimension && audioState.currentSong !== audioState.currentZone.past) {
                     newSong = audioState.currentZone.past;
-                    args = { volume: .08 }
+                    args = { volume: .001 }
                 }
                 else if (audioState.currentZone.present && presentDimension && audioState.currentSong !== audioState.currentZone.present) {
                     newSong = audioState.currentZone.present;
@@ -40,6 +42,9 @@ export default function () {
     };
 
     async function play(song, { type = 'ambient', volume = 1 } = {}) {
+        if (MUTE) return
+
+        console.log('play ' + song)
         let audio = load(song);
         if (!audio.paused) {
             audio.pause();
@@ -47,10 +52,13 @@ export default function () {
         }
 
         audio.volume = volume;
-        await audio.play();
+        await playAudio(audio);
     }
 
     function load(song) {
+        if (!loadedSongs[song]) {
+            console.log('loading song: ' + song)
+        }
         loadedSongs[song] = loadedSongs[song] || new Audio(`./audio/${library[song]}`);
         return loadedSongs[song];
     }
@@ -65,6 +73,8 @@ export default function () {
         audioState.currentAudio = newAudio;
         audioState.currentZone = newZone;
         audioState.currentSong = song;
+
+        volume = newZone.volume || volume
         await fadeIn(newAudio, song, volume);
     }
 
@@ -87,7 +97,7 @@ export default function () {
             audio.currentTime = 0.0;
         }
         audio.volume = 0;
-        await audio.play();
+        await playAudio(audio);
 
         let fadeInVolume = 0;
         let fadeIn = setInterval(() => {
@@ -97,5 +107,10 @@ export default function () {
                 clearInterval(fadeIn);
             }
         }, 20);
+    }
+
+    async function playAudio(audio) {
+        if (MUTE) return
+        await audio.play();
     }
 }

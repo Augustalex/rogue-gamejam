@@ -1,7 +1,7 @@
 //TODO make public constant in a players class
 const runningSpeed = 2;
 
-export default function ({ keysDown, wasPressed, wasReleased, keysDown: actionKeysActive }, { store, clientId }) {
+export default function ({ keysDown, wasPressed, wasReleased, keysDown: actionKeysActive }, { localStore, store, clientId }) {
     if (wasPressed('run')) {
         actionKeysActive.add('run')
     }
@@ -36,11 +36,28 @@ export default function ({ keysDown, wasPressed, wasReleased, keysDown: actionKe
         runningChanged = true;
         actionKeysActive.delete('run')
     }
+    let running = actionKeysActive.has('run');
 
-    if (wasPressed('changeDimension')) {
-        store.commit('CHANGE_DIMENSION', {
-            id: clientId
-        });
+    if (movingX !== player.moving.x || movingY !== player.moving.y || (runningChanged && (Math.abs(player.moving.x) > 0 || Math.abs(player.moving.y) > 0))) {
+
+        let c = Math.sqrt(movingX * movingX + movingY * movingY);
+        movingX /= c;
+        movingY /= c;
+        store.commit('SET_PLAYER_MOVING', {
+            id: clientId,
+            moving: {
+                x: running ? movingX * runningSpeed : movingX,
+                y: running ? movingY * runningSpeed : movingY
+            }
+        })
+    }
+
+    if (player.abilities.time) {
+        if (wasPressed('changeDimension')) {
+            store.commit('CHANGE_DIMENSION', {
+                id: clientId
+            });
+        }
     }
     if (wasPressed('interact')) {
         if (Math.abs(player.position.x - 346) < 64 &&
@@ -53,32 +70,23 @@ export default function ({ keysDown, wasPressed, wasReleased, keysDown: actionKe
                 player.hasTripleBow = true;
             }
         }
+        localStore.commit('SET_PLAYER_INTERACTING', { id: store.state.clientId, interacting: true });
+    }
+    else if (wasReleased('interact')) {
+        localStore.commit('SET_PLAYER_INTERACTING', { id: store.state.clientId, interacting: false });
     }
 
-    if (wasPressed('teleport')) {
-        store.commit('START_PLAYER_TELEPORTING', {
-            id: clientId
-        });
-    }
-    if (wasReleased('teleport')) {
-        store.commit('FINISH_PLAYER_TELEPORTING', {
-            id: clientId
-        });
-    }
-
-    if (movingX !== player.moving.x || movingY !== player.moving.y || (runningChanged && (player.moving.x > 0 || player.moving.y > 0))) {
-        let running = actionKeysActive.has('run');
-
-        let c = Math.sqrt(movingX * movingX + movingY * movingY);
-        movingX /= c;
-        movingY /= c;
-        store.commit('SET_PLAYER_MOVING', {
-            id: clientId,
-            moving: {
-                x: running ? movingX * runningSpeed : movingX,
-                y: running ? movingY * runningSpeed : movingY
-            }
-        })
+    if (player.abilities.teleport) {
+        if (wasPressed('teleport')) {
+            store.commit('START_PLAYER_TELEPORTING', {
+                id: clientId
+            });
+        }
+        else if (wasReleased('teleport')) {
+            store.commit('FINISH_PLAYER_TELEPORTING', {
+                id: clientId
+            });
+        }
     }
 
     const maxAxesForPressedKeys = (actionKeys, direction) => {
@@ -97,7 +105,7 @@ export default function ({ keysDown, wasPressed, wasReleased, keysDown: actionKe
         if (wasPressed(up)) {
             y = -1
         }
-        return { x, y }
+        return { x, y };
     };
 
     let playerShootingDirection = player.shooting.direction;
@@ -114,15 +122,39 @@ export default function ({ keysDown, wasPressed, wasReleased, keysDown: actionKe
         let y = vector.y;
         if (wasReleased(actionKeys[0]) && vector.y < 0) {
             y = 0
+            if (x !== 0) {
+                x = x > 0 ? 1 : -1;
+                if (running) {
+                    x *= 2;
+                }
+            }
         }
         if (wasReleased(actionKeys[1]) && vector.y > 0) {
             y = 0
+            if (x > 0) {
+                x = x > 0 ? 1 : -1;
+                if (running) {
+                    x *= 2;
+                }
+            }
         }
         if (wasReleased(actionKeys[2]) && vector.x < 0) {
             x = 0
+            if (y !== 0) {
+                y = y > 0 ? 1 : -1;
+                if (running) {
+                    y *= 2;
+                }
+            }
         }
         if (wasReleased(actionKeys[3]) && vector.x > 0) {
             x = 0
+            if (y !== 0) {
+                y = y > 0 ? 1 : -1;
+                if (running) {
+                    y *= 2;
+                }
+            }
         }
         return { x, y }
     };
@@ -149,5 +181,4 @@ export default function ({ keysDown, wasPressed, wasReleased, keysDown: actionKe
             direction: updatedVector
         })
     }
-
 }

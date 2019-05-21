@@ -17,6 +17,7 @@ export default function WorldMaker(worldData) {
         colorToEnemyName,
         EnemyFactoryFactory
     } = worldData;
+
     let availableColors = Object.keys(colorToTileId).map(colorString => {
         let [rs, gs, bs] = colorString.split(',');
         return [parseFloat(rs), parseFloat(gs), parseFloat(bs)];
@@ -39,18 +40,23 @@ export default function WorldMaker(worldData) {
             return layerCanvas;
         },
         async makeLayer() {
+            console.log('LOADING MAP MATRIX')
             let matrix = await mapTools.loadToMatrix(matrixPath, availableColors);
             let audioMap;
+            console.log('LOADING AUDIO MATRIX')
             if (audioMapPath) {
                 audioMap = await mapTools.loadToMatrix(audioMapPath, availableAudioColors);
             }
             let enemyMap;
+            console.log('LOADING ENEMY MATRIX')
             if (enemyMapPath) {
                 enemyMap = await mapTools.loadToMatrix(enemyMapPath, availableEnemyColors);
             }
 
+            console.log('LOADING WORLD SPRITES')
             let sprites = await loadSprites(spritePaths);
             let tileGetters = TileGetters(sprites);
+            console.log('CREATING LAYER')
             let data = await createLayer({
                 colorToTileId,
                 tileGetters,
@@ -73,6 +79,7 @@ async function loadSprites(spritePaths) {
     let sprites = {};
     let promises = [];
     for (let name of spriteNames) {
+        console.log('LOADING SPRITE "' + name + '" FOR WORLD')
         promises.push((async () => {
             sprites[name] = await loadSprite(spritePaths[name], { tileWidth: 16, tileHeight: 16 });
         })());

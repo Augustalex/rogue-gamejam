@@ -1,17 +1,9 @@
 import Sprites from './sprites.js';
 
-var backgroundImage = new Image();
-backgroundImage.src = './sprites/sprite_Tile_Edge.png';
 var vignetteImage = new Image();
 vignetteImage.src = './sprites/vignette.png';
-var towerImage = new Image();
-towerImage.src = './sprites/tower.png';
-
-var heavyBrickLefts;
-var heavyBrickRights = [];
 
 let shadows = true; // Also enable fallingBullets in fysik.js
-let perspective = true;
 
 let colorByShooterId = {};
 setInterval(() => {
@@ -28,10 +20,10 @@ export default async function draw({ canvas: finalCanvas, context: finalContext 
     // var t0 = performance.now();
     if (first) {
         first = false;
-        heavyBrickLefts = await loadHeavyBricks('Left');
-        heavyBrickRights = await loadHeavyBricks('Right');
+        console.log('INSTANTIATING DRAWING DEPENDENCIES')
         await Sprites.loadResources();
         rain = Rain(finalCanvas, finalContext);
+        console.log('DONE INSTANTIATING DRAWING DEPENDENCIES')
     }
     let worldLayer = store.state.worldLayer.layer;
 
@@ -139,8 +131,8 @@ export default async function draw({ canvas: finalCanvas, context: finalContext 
         }
     }
 
-    var t1 = performance.now();
-    console.log("Call to Draw.js took " + (t1 - t0) + " milliseconds.")
+    // var t1 = performance.now();
+    // console.log("Call to Draw.js took " + (t1 - t0) + " milliseconds.")
 }
 
 function drawPlayer(context, { position: { x, y }, color, moving, shooting, teleporting, teleportCursor, id, sprite }, camera) {
@@ -167,7 +159,7 @@ function drawPlayer(context, { position: { x, y }, color, moving, shooting, tele
     context.globalAlpha = 1;
     let scale = 2;
     context.imageSmoothingEnabled = false;
-    if(!sprite) {
+    if (!sprite) {
         console.log('!SPRITE');
     }
     if (!sprite) return;
@@ -197,6 +189,32 @@ function drawBullet(context, bullet, color) {
         context.lineWidth = 2;
         context.strokeStyle = '#ac00ff';
         context.stroke();
+    }
+    else if (bullet.type === 'sword') {
+        let dir = Math.atan2(bullet.direction.y, bullet.direction.x);
+        context.beginPath();
+        context.strokeStyle = 'rgba(220,220,255,0.8)';
+        context.lineWidth = 35;
+        if (dir > 3) {
+            context.arc(bullet.x, bullet.y, 50, 2.8 * Math.PI, 1.7 * Math.PI);
+        }
+        else if (dir < -3) {
+            context.arc(bullet.x, bullet.y, 50, 2.8 * Math.PI, 1.7 * Math.PI);
+        }
+        else if (dir > 1.5) {
+            context.arc(bullet.x, bullet.y, 50, 2 * Math.PI, .9 * Math.PI);
+        }
+        else if (dir < -1.5) {
+            context.arc(bullet.x, bullet.y, 50, 1 * Math.PI, 1.9 * Math.PI);
+        }
+        else if (dir > 0) {
+            context.arc(bullet.x, bullet.y, 50, 1.2 * Math.PI, 2.3 * Math.PI);
+        }
+        else if (dir < 0) {
+            context.arc(bullet.x, bullet.y, 50, 1.2 * Math.PI, 2.3 * Math.PI);
+        }
+        context.stroke();
+        context.closePath();
     }
     else {
         let dir = Math.atan2(bullet.direction.y, bullet.direction.x);
