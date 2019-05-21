@@ -22,7 +22,7 @@ let ballHue = 340;
 let hueDir = 1;
 
 export default async function () {
-    let socket = io.connect(`${window.location.hostname}:3032`);
+    let socket = io();
     console.log(window.location.hostname);
     //let socket = io.connect('http://192.168.1.106:3032');
     const color = rColor();

@@ -2,6 +2,7 @@
 import mapTools from './mapTools.js';
 import loadSprite from './loadSprite.js';
 import rasterizeLayer from './rasterizeLayer.js';
+import {getOrCreate} from '../timeCache.js';
 
 export default function WorldMaker(worldData) {
     let {
@@ -39,14 +40,14 @@ export default function WorldMaker(worldData) {
             return layerCanvas;
         },
         async makeLayer() {
-            let matrix = await mapTools.loadToMatrix(matrixPath, availableColors);
+            let matrix = await getOrCreate('matrix', () => mapTools.loadToMatrix(matrixPath, availableColors));
             let audioMap;
             if (audioMapPath) {
-                audioMap = await mapTools.loadToMatrix(audioMapPath, availableAudioColors);
+                audioMap = await getOrCreate('audioMap', () => mapTools.loadToMatrix(audioMapPath, availableAudioColors));
             }
             let enemyMap;
             if (enemyMapPath) {
-                enemyMap = await mapTools.loadToMatrix(enemyMapPath, availableEnemyColors);
+                enemyMap = await getOrCreate('enemyMap', () => mapTools.loadToMatrix(enemyMapPath, availableEnemyColors));
             }
 
             let sprites = await loadSprites(spritePaths);

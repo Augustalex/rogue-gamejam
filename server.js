@@ -1,31 +1,64 @@
-var http = require('http');
-var server = http.createServer(function (request, response) {
-    response.writeHead(200, { "Content-Type": "text/plain" });
-});
-var io = require('socket.io')(server);
-server.listen(3032, '0.0.0.0');
-let log = [];
-io.on('connection', socket => {
-    socket.on('dispatch', data => {
-        console.log('dispatch', data.argument);
-        log.push(['d', data]);
-        socket.broadcast.emit('dispatch', data)
+const express = require('express');
+const http = require('http');
+const port = 3000;
+const SocketIO = require('socket.io');
+
+run();
+
+async function run() {
+    const app = express();
+    app.use(express.static(__dirname));
+    app.get('/', (req, res) => res.sendFile(__dirname + '/index.html'));
+
+    const server = http.createServer(app);
+    const socketMaster = SocketIO(server);
+
+    console.log(` - 2/2 Setting up server at port ${port}`);
+    server.listen(port, () => {
+        console.log(` - 2/2 SUCCESS, running on port ${port}\n`);
     });
-    socket.on('commit', data => {
-        console.log('commit', data.argument);
-        log.push(['c', data]);
-        socket.broadcast.emit('commit', data)
-    });
-    for (let i = 0; i < log.length; i++) {
-        if (log[i][0] === 'd') {
-            socket.emit('dispatch', log[i][1])
+
+    const log = Log();
+    socketMaster.on('connection', socket => {
+        socket.on('dispatch', data => {
+            // console.log('dispatch', data.argument);
+            log.push(['d', data]);
+            socket.broadcast.emit('dispatch', data)
+        });
+        socket.on('commit', data => {
+            // console.log('commit', data.argument);
+            log.push(['c', data]);
+            socket.broadcast.emit('commit', data)
+        });
+
+        const readLog = log.read();
+        for (let i = 0; i < readLog.length; i++) {
+            if (readLog[i][0] === 'd') {
+                socket.emit('dispatch', readLog[i][1])
+            }
+            else if (readLog[i][0] === 'c') {
+                socket.emit('commit', readLog[i][1])
+            }
         }
-        else if (log[i][0] === 'c') {
-            socket.emit('commit', log[i][1])
+    });
+}
+
+function Log() {
+    let log = [];
+
+    return {
+        push,
+        read
+    };
+
+    function push(data) {
+        log.push(data);
+        if (log.length > 10000) {
+            log = log.slice(5000);
         }
     }
-});
-//
-// setInterval(() => {
-//     log = log.slice(-Math.round(log.length * .2));
-// }, 20000);
+
+    function read() {
+        return log;
+    }
+}
