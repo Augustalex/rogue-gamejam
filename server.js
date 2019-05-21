@@ -6,10 +6,14 @@ const SocketIO = require('socket.io');
 run();
 
 async function run() {
+    const log = Log();
+
     const app = express();
     app.use(express.static(__dirname));
     app.get('/', (req, res) => res.sendFile(__dirname + '/index.html'));
-
+    app.get('/log', (req, res) => {
+        res.end(JSON.stringify(log.read()));
+    });
     const server = http.createServer(app);
     const socketMaster = SocketIO(server);
 
@@ -18,7 +22,6 @@ async function run() {
         console.log(` - 2/2 SUCCESS, running on port ${port}\n`);
     });
 
-    const log = Log();
     socketMaster.on('connection', socket => {
         socket.on('dispatch', data => {
             // console.log('dispatch', data.argument);
