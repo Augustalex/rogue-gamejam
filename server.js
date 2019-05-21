@@ -1,6 +1,6 @@
 const express = require('express');
 const http = require('http');
-const port = 80;
+const port = 3000;
 const SocketIO = require('socket.io');
 
 run();
